@@ -194,6 +194,27 @@
 	 (setq *position-updated* nil)
 	 )))))))
 
+(defun calc-inertia-tensor-from-coords ;; RTIR + m[cx]T[cx]
+  (c
+   &key
+   (link-list (send *robot* :links))
+   (meter? t))
+  (reduce
+   #'m+
+   (mapcar
+    #'(lambda (l)
+        (let* ((p (outer-product-matrix (v- (send l :worldpos)
+                                            (send c :worldpos))))
+               (r (m* (transpose (send c :worldrot))
+                      (send l :worldrot)))
+               (i (send l :inertia-tensor))
+               (m (send l :weight))
+               (ret
+                (m+ (m* (transpose r) (m* i r))
+                    (scale-matrix m (m* (transpose p) p)))))
+          (if meter? (scale-matrix 1e-9 ret) ret)))
+    link-list)))
+
 
 
 #|
