@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/noda/prog/euslib/demo/s-noda/tmp-ros-package/ros2http/ros2http_converter/float2string/src/float_string.c
+stdio.h
+-
+stdlib.h
+-
+
+/home/noda/prog/euslib/demo/s-noda/tmp-ros-package/ros2http/ros2http_converter/float2string/src/main.c
+stdio.h
+-
+stdlib.h
+-
+float_string.c
+/home/noda/prog/euslib/demo/s-noda/tmp-ros-package/ros2http/ros2http_converter/float2string/src/float_string.c
+

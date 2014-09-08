@@ -1,0 +1,1 @@
+/usr/bin/gcc  -fPIC    -shared -Wl,-soname,libfloat2string.so -o lib/libfloat2string.so CMakeFiles/float2string.dir/src/float_string.o 
