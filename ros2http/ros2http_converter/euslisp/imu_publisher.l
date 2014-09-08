@@ -58,7 +58,7 @@
 			   :x (aref q 1)
 			   :y (aref q 2)
 			   :z (aref q 3)
-			   :w (aref q 4)))
+			   :w (aref q 0)))
 	       :linear_acceleration
 	       (instance geometry_msgs::Vector3
 			 :init
