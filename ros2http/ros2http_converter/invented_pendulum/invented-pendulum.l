@@ -14,6 +14,8 @@
     (x (instantiate float-vector 4))
     (y (instantiate float-vector 2))
     (u (instantiate float-vector (if use-torso 2 1)))
+    (maxu (fill (copy-seq u) 10.0))
+    (minu (fill (copy-seq u) -10.0))
     (mm 5.0)
     (m 4.0)
     (r 1.)

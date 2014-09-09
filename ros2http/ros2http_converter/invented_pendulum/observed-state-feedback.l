@@ -6,7 +6,7 @@
 
 (defclass observed-state-feedback
   :super object
-  :slots (x dx y u x^ dx^ y^ v
+  :slots (x dx y u x^ dx^ y^ v maxu minu
 	    A B C D L F W
 	    timer))
 (defmethod observed-state-feedback
@@ -18,6 +18,8 @@
     (dx (copy-seq x))
     (y (instantiate float-vector 2))
     (u (instantiate float-vector 2))
+    (maxu (fill (copy-seq u) 10))
+    (minu (fill (copy-seq u) -10))
     (v (copy-seq u))
     (x^ (copy-seq x))
     (dx^ (copy-seq x))
@@ -56,6 +58,16 @@
     (y (send self :y))
     (y^ (send self :y^))
     )
+   (setq
+    u
+    (map float-vector
+	 #'(lambda (min u max)
+	     (let ((u_ (min max (max min u))))
+	       (if (or (< u min) (> u max))
+		   (format t " [:update] warn u E/ (~A ~A) -> ~A~%" min max u_))
+	       u_))
+	 minu u maxu))
+   ;; (setq u (vmax minu (vmin maxu u)))
    (send self :u u)
    (send self :dx (setq dx (v+ (transform A x) (transform B u))))
    (send self :x (setq x (v+ x (scale tm dx))))
