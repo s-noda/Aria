@@ -36,6 +36,11 @@
 (defun calc-eigen-test
   (&key
    (mat (diagonal (random-vector 1.0)))
+   (n (send mat :get-val 'dim0))
+   (peigenval (instantiate float-vector n))
+   (neigenval (instantiate float-vector n))
+   (peigenvec (instantiate float-vector (* n n)))
+   (neigenvec (instantiate float-vector (* n n)))
    )
   (calc-eigen :mat mat)
   (format t "[calc-eigen-test]~%")

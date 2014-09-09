@@ -43,7 +43,7 @@
     (F (send self :F))
     (x^ (send self :x^))
     (v (send self :v))
-    (u (v- v (scale 1 (transform F x^))))
+    (u (v- v (transform F x^)))
     ;;
     (A (send self :A))
     (x (send self :x))
@@ -96,9 +96,9 @@
      (push (funcall return-callback i) ret)
      (if graph (push (funcall graph-callback i) graph-buf))
      (send self :update :tm step))
-   (format t "simulation in ~Astep~% x=~A~% dx=~A~%"
-	   stop
-	   (send self :x) (send self :dx))
+   (format t "[simulation in ~A sec]~% x=~A~% dx=~A~% x_dif=~A~%"
+	   (* stop step)
+	   (send self :x) (send self :dx) (v- (send self :x) (send self :x^)))
    (cond
     (graph
      (require "euslib/demo/s-noda/util/graph-sample.l")
@@ -127,12 +127,13 @@
     (Bt (transpose B))
     (max 500000)
     (conv-thre-rate 1e-6)
+    (max-conv-thre 1e-6)
     (min-conv-thre 1e-12)
     (conv-thre)
     (conv-flag nil)
     (P (make-matrix (length x) (length x)))
     (dP) ;; (copy-object P))
-    (gain 1e-2)
+    (gain -1e-2)
     (debug? nil)
     )
    (dotimes (i max)
@@ -141,15 +142,22 @@
 	       (m+ (m* P A)
 		   (m- Q
 		       (m* P (m* B (m* R (m* Bt P))))))))
-     (if (null conv-thre)
-	 (setq conv-thre (max min-conv-thre
-			      (* conv-thre-rate (norm (send dP :get-val 'entity))))))
+     (cond
+      ((null conv-thre)
+       (setq conv-thre
+	     (min max-conv-thre
+		  (max min-conv-thre
+		       (* conv-thre-rate (norm (send dP :get-val 'entity))))))
+       (format t " :solve-riccati thre ~A~%" conv-thre)))
      (if debug? (print (norm (send dp :get-val 'entity))))
      (if (< (norm (send dp :get-val 'entity)) conv-thre)
 	 (return-from nil (setq conv-flag t)))
      (setq P (m- P (scale-matrix gain dP)))
      )
-   (if (not conv-flag) (format t " :solve-riccati failed~%"))
+   (if (not conv-flag) (format t " :solve-riccati failed ~A > ~A~%"
+			       (norm (send dp :get-val 'entity))
+			       conv-thre
+			       ))
    P)
   (:riccati-f
    nil
@@ -166,6 +174,17 @@
    ;; 	   (m* (transpose (send self :B)) (send rc :get-val 'P)))
    ;;   rc
    ;; (send self :L (transpose (send self :F)))
+   )
+  (:check-f
+   (&key (m (m- (send self :A) (m* (send self :B) (send self :F))))
+	 (eigen (instantiate float-vector (send m :get-val 'dim0))))
+   (require "package://ros2http/ros2http_converter/eus_eigen/euslisp/eus_eigen.l")
+   (calc-eigen :mat m :peigenval eigen)
+   (format t " [:check-f]~%")
+   (format-array m)
+   (format t "  ---> ")
+   (print eigen)
+   (if (find-if #'plusp eigen) (format t "   !!!!! dangerous !!!!~%"))
    )
   (:nomethod
    (&rest args)
