@@ -8,7 +8,7 @@
   :super object
   :slots (x dx y u x^ dx^ y^ v maxu minu
 	    A B C D L F W
-	    timer))
+	    timer dt))
 (defmethod observed-state-feedback
   (:init
    (&rest
@@ -41,7 +41,7 @@
    )
   (:update
    (&key
-    (tm (if timer (send timer :stop) 0))
+    (tm (setq dt (if timer (send timer :stop) 0)))
     (F (send self :F))
     (x^ (send self :x^))
     (v (send self :v))
@@ -57,6 +57,8 @@
     (dx^ (send self :dx^))
     (y (send self :y))
     (y^ (send self :y^))
+    ;;
+    (ys)
     )
    (setq
     u
@@ -71,13 +73,14 @@
    (send self :u u)
    (send self :dx (setq dx (v+ (transform A x) (transform B u))))
    (send self :x (setq x (v+ x (scale tm dx))))
-   (send self :y (setq y (v+ (transform C x) (transform D u))))
+   (send self :y (setq y (or ys (v+ (transform C x) (transform D u)))))
    (send self :dx^ (setq dx^ (v+ (transform (m- A (m* L C)) x^)
 				 (v+ (transform B u)
 				     (transform L (v- y (transform D u)))))))
    (send self :x^ (setq x^ (v+ x^ (scale tm dx^))))
    (send self :y^ (v+ (transform D u) (transform C x^)))
    (send self :timer (instance mtimer :init))
+   (v- v (transform F x^))
    )
   (:simulation
    (&key (stop 300)

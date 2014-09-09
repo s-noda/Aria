@@ -10,7 +10,7 @@
    (&rest
     args
     &key
-    (use-torso t)
+    (use-torso nil)
     (x (instantiate float-vector 4))
     (y (instantiate float-vector 2))
     (u (instantiate float-vector (if use-torso 2 1)))
