@@ -28,7 +28,7 @@
     (W (unit-matrix (length x)))
     (D (make-matrix (length y) (length u)))
     (L (make-matrix (length x) (length y)))
-    (F (transpose L))
+    (F (make-matrix (length u) (length x)))
     &allow-other-keys
     )
    (mapcar
@@ -90,11 +90,13 @@
 		       (map float-vector #'(lambda (a) (- (* 2 (random 0.1)) 0.1)) x))
 		 (send self :y (scale 0 y))
 		 (send self :y^ (scale 0 y))))
+	 (debug? nil)
 	 )
    (send self :x^ (send self :x))
    (dotimes (i stop)
      (if return-callback (push (funcall return-callback i) ret))
      (if graph (push (funcall graph-callback i) graph-buf))
+     (if debug? (format t " x --> ~A~%" (send self :x)))
      (send self :update :tm step))
    (format t "[simulation in ~A sec]~% x=~A~% dx=~A~% x_dif=~A~%"
 	   (* stop step)
@@ -159,11 +161,20 @@
 			       conv-thre
 			       ))
    P)
+  (:riccati-l
+   nil
+   (let* ((P (send self :solve-riccati
+		   :A (transpose (send self :A))
+		   :B (transpose (send self :C))
+		   :R (unit-matrix (length y))
+		   )))
+     (send self :L (transpose (m* (send self :C) P)))
+     ))
   (:riccati-f
    nil
    (let* ((P (send self :solve-riccati)))
      (send self :F (m* (transpose (send self :B)) P))
-     (send self :L (transpose (send self :F)))
+     ;; (send self :L (transpose (send self :F)))
      )
    ;; (let* ((rc (instance riccati-equation :init
    ;; 			(send self :A)
