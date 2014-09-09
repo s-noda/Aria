@@ -15,50 +15,74 @@
     (u (instantiate float-vector 2))
     (mm 5.0)
     (m 4.0)
-    (r 0.5)
-    (I 10)
+    (r 1.)
+    (I 4)
     (g 9.8)
-    (ur 0.1)
-    (ux 0.1)
+    (ur 0.)
+    (ux 0.)
     &allow-other-keys)
-   (send-super* :init args)
    (mapcar
     #'(lambda (sym)
-	(let* ((key (read-from-string (format nil ":~A" (car sym)))))
-	  (send self key (or (eval (car sym)) (cdr sym)))))
-    (send self :slots))
+	(let* ((key (read-from-string (format nil ":~A" sym))))
+	  (send self key (eval sym))))
+    '(mm m r I g ur ux))
+   (send-super* :init
+		:x x :y y :u u
+		:W (make-matrix 2 4
+				'((1e-1 0 0 0)
+				  (0 1e-1 0 0)
+				  ;; (0 0 1e-3 0)
+				  ;; (0 0 0 1e-3)
+				  ))
+		args)
    )
   (:A (&rest args)
-      (m* (pseudo-inverse
-	   (make-matrix
-	    4 4
-	    (list (list 1 0 0 0)
-		  (list 0 1 0 0)
-		  (list 0 0 (+ mm m) (* -1 m r))
-		  (list 0 0 (* m r) (- I (* m r r))))))
-	  (make-matrix
-	   4 4
-	   (list (list 0 0 1 0)
-		 (list 0 (* m r g) 0 1)
-		 (list 0 0 (* -1 ux) 0)
-		 (list 0 0 0 (* -1 ur))))))
+      (let* ((q (aref x 1))
+	     (dq (aref x 3))
+	     (sq/q (if (< (abs q) 1e-6) 1.0 (/ (sin q) q)))
+	     ;; (/ (sin q) (if (< (abs q) 1e-6) 1.0 q)))
+	     )
+	(m* (pseudo-inverse
+	     (make-matrix
+	      4 4
+	      (list (list 1 0 0 0)
+		    (list 0 1 0 0)
+		    (list 0 0 (+ mm m) (* -1 m r (cos q)))
+		    (list 0 0 (* m r (cos q)) (+ (* -1 I) (* -1 m r r))))))
+	    (scale-matrix
+	     -1
+	     (make-matrix
+	      4 4
+	      (list (list 0 0 -1 0)
+		    (list 0 0 0 -1)
+		    (list 0 (* +1 m r sq/q dq dq) (* 1 ux) 0)
+		    (list 0 (* +1 m r g sq/q) 0 (* -1 ur))))))))
   (:B (&rest args)
       (m* (pseudo-inverse
 	   (make-matrix
 	    4 4
 	    (list (list 1 0 0 0)
 		  (list 0 1 0 0)
-		  (list 0 0 (+ mm m) (* -1 m r))
-		  (list 0 0 (* m r) (- I (* m r r))))))
+		  (list 0 0 (+ mm m) (* -1 m r (cos (aref x 1))))
+		  (list 0 0 (* m r (cos (aref x 1))) (+ (* -1 I) (* -1 m r r))))))
+	  ;; (make-matrix
+	  ;;  4 1
+	  ;;  (list (list 0)
+	  ;; 	 (list 0)
+	  ;; 	 (list (* +1 r))
+	  ;; 	 (list 0)))
 	  (make-matrix
 	   4 2
 	   (list (list 0 0)
-		 (list 0 0)
-		 (list 1 0)
-		 (list 0 1)))))
+	  	 (list 0 0)
+	  	 (list (* +1 r) 0)
+	  	 (list 0 +1)))
+	  ))
   (:C (&rest args)
       (make-matrix 2 4 (list (list 1 0 0 0) (list 0 1 0 0))))
   )
 
-(defvar a (instance invented-pendulm :init))
+(defvar *ip* (instance invented-pendulm :init))
+(print (send *ip* :riccati-f))
+;; (send *ip* :simulation :graph t)
 ;; (print (send a :update))
