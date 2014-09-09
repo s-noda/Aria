@@ -9,7 +9,7 @@
      (format t "  [~A] target=" depth)
      (cond
       ((eq (length str) 0)
-       (format t "~% nlopt_plugin_not_found in nlopt.l~%")
+       (format t "~% euseigen_plugin_not_found in eus_eigen.l~%")
        (exit -1))
       ((and (setq colon-pos (or (position #\: str) (length str)))
 	    (setq lib-path (subseq str 0 colon-pos))
