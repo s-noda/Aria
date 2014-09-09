@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package>
+  <name>invented_pendulum</name>
+  <version>0.1.0</version>
+  <description>The invented_pendulum package</description>
+  <maintainer email="s-noda@jsk.t.u-tokyo.ac.jp">s-noda</maintainer>
+  <license>NYSL</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <export>
+  </export>
+</package>
