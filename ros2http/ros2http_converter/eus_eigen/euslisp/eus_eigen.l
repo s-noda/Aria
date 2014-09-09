@@ -15,7 +15,7 @@
       (exit -1))
      (t (load-foreign path)))))
 
-(defforeign calc-eigen
+(defforeign _calc-eigen
   *float2string-plugin*
   "calc_eigen"
   (:integer :string :string :string :string :string)
@@ -30,7 +30,7 @@
    (peigenvec (instantiate float-vector (* n n)))
    (neigenvec (instantiate float-vector (* n n)))
    )
-  (calc-eigen n (send mat :get-val 'entity) peigenval neigenval peigenvec neigenvec)
+  (_calc-eigen n (send mat :get-val 'entity) peigenval neigenval peigenvec neigenvec)
   )
 
 (defun calc-eigen-test
