@@ -1,0 +1,71 @@
+#!/usr/bin/env roseus
+
+#-:jsk (if (functionp 'jsk) (jsk))
+#-:rbrain (if (functionp 'rbrain) (rbrain))
+
+(require "invented-pendulum.l")
+
+(ros::load-ros-manifest "std_msgs")
+
+(defvar *ip* (instance invented-pendulm :init))
+(send *ip* :riccati-l)
+(send *ip* :riccati-f)
+(send *ip* :check-f)
+
+(defvar *u* (send *ip* :u))
+(defvar *y* (send *ip* :y))
+
+(defvar *graph*)
+(cond
+ ((probe-file (ros::resolve-ros-path "package://euslib/demo/s-noda/util/graph-sample.l"))
+  (require "package://euslib/demo/s-noda/util/graph-sample.l")
+  (setq *graph*
+	(create-graph
+	 "invented-pendulum"
+	 :name-list (append (list "x" "q")
+			    (let* ((id 0))
+			      (map cons #'(lambda (v) (format nil "u~A" (incf id))) *u*)))
+	 ))
+  (send *graph* :forcus-pos #F(0 0))
+  ))
+
+(ros::roseus "invented_pendulm")
+
+(defun update-graph
+  (&key (rate 1))
+  (cond
+   (*graph*
+    (add-data-to-graph
+     (concatenate cons
+		  (list (aref (send *ip* :x^) 0)
+			(aref (send *ip* :x^) 1))
+		  *u*)
+     :graph *graph*
+     :time-step (* rate (send *ip* :dt))))))
+
+(defun sensor-vector-callback
+  (msg)
+  (setq *y* (send msg :data))
+  )
+
+(ros::subscribe "/invented_pendulum/sensor_vector"
+		std_msgs::float32multiarray
+		#'sensor-vector-callback
+		1)
+(ros::advertise "/invented_pendulum/command_vector"
+		std_msgs::float32multiarray)
+
+(ros::rate 100)
+(let* ((id 0))
+  (do-until-key
+   (bench
+    (if (not (ros::ok)) (return-from nil nil))
+    (ros::spin-once)
+    (setq *u* (send *ip* :update :u *u* :ys *y*))
+    (cond
+     ((> (incf id) 50)
+      (setq id 0)
+      (update-graph :rate 50)))
+    (ros::publish "/invented_pendulum/command_vector"
+		  (instance std_msgs::float32multiarray :init :data *u*))
+    (ros::sleep))))
