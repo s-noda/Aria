@@ -71,8 +71,8 @@
    (&key (stop 300)
 	 (step 0.01)
 	 ret
-	 (return-callback
-	  #'(lambda (id &rest args) (send self :x)))
+	 (return-callback nil)
+	 ;;#'(lambda (id &rest args) (send self :x)))
 	 (graph nil)
 	 graph-buf
 	 (graph-callback
@@ -93,7 +93,7 @@
 	 )
    (send self :x^ (send self :x))
    (dotimes (i stop)
-     (push (funcall return-callback i) ret)
+     (if return-callback (push (funcall return-callback i) ret))
      (if graph (push (funcall graph-callback i) graph-buf))
      (send self :update :tm step))
    (format t "[simulation in ~A sec]~% x=~A~% dx=~A~% x_dif=~A~%"
@@ -162,7 +162,9 @@
   (:riccati-f
    nil
    (let* ((P (send self :solve-riccati)))
-     (send self :F (m* (transpose (send self :B)) P)))
+     (send self :F (m* (transpose (send self :B)) P))
+     (send self :L (transpose (send self :F)))
+     )
    ;; (let* ((rc (instance riccati-equation :init
    ;; 			(send self :A)
    ;; 			(send self :B)
