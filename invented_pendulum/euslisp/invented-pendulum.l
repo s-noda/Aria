@@ -3,7 +3,7 @@
 
 (defclass invented-pendulm
   :super observed-state-feedback
-  :slots (mm m r I g ur ux use-torso)
+  :slots (mm m r wr I g ur ux use-torso)
   )
 (defmethod invented-pendulm
   (:init
@@ -16,10 +16,11 @@
     (u (instantiate float-vector (if use-torso 2 1)))
     (maxu (fill (copy-seq u) 10.0))
     (minu (fill (copy-seq u) -10.0))
-    (mm 5.0)
-    (m 4.0)
-    (r 1.)
-    (I 4)
+    (mm 1.0)
+    (m 10.0)
+    (r 0.5)
+    (wr 0.1)
+    (I 7.5)
     (g 9.8)
     (ur 3.0)
     (ux 3.0)
@@ -28,7 +29,7 @@
     #'(lambda (sym)
 	(let* ((key (read-from-string (format nil ":~A" sym))))
 	  (send self key (eval sym))))
-    '(mm m r I g ur ux use-torso))
+    '(mm m r wr I g ur ux use-torso))
    (send-super* :init
 		:x x :y y :u u
 		:W (make-matrix 4 4
