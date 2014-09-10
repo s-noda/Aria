@@ -26,7 +26,7 @@
 	  (send
 	   (send bl :copy-worldcoords)
 	   :rotate (deg2rad -90) :x)
-	  :rotate (deg2rad 90) :z)
+	  :rotate (deg2rad (* 2 90)) :z)
 	 :parent bl)
 	))
 
@@ -116,10 +116,10 @@
   (tv)
   (dotimes (i (length tv))
     (setf (aref *joint-vector* i) (elt tv i)))
-  ;; (ros::publish "/currentor_socket/request/torque_vector"
-  ;; 		(instance std_msgs::float32multiarray
-  ;; 			  :init
-  ;; 			  :data *joint-vector*))
+  (ros::publish "/currentor_socket/request/torque_vector"
+  		(instance std_msgs::float32multiarray
+  			  :init
+  			  :data *joint-vector*))
   )
 
 ;; (defun torque-command (tv) nil)
@@ -138,7 +138,7 @@
 ;; 		nav_msgs::odometry
 ;; 		#'imu-callback
 ;; 		1)
-(ros::advertise "/imu_data"
+(ros::subscribe "/kduino/converted_imu" ;; "/imu_data"
                 sensor_msgs::imu
 		#'imu-callback
                 1)
@@ -146,7 +146,7 @@
 (defun gained-torque
   (tor)
   (let* ((val (abs tor)))
-    (* tor 0)))
+    (* tor 8)))
 
 (defun sensor-feedback-loop
   (&key (hz 50))
@@ -182,7 +182,8 @@
 	       #'gained-torque
 	       (map float-vector
 		    #'*
-		    (scale -1 #F(0 1 1 1 1 1 1 1))
+		    (scale -1 #F(0 1 1 1 1 1 1 1
+				   1 1 1 1 1 1 1))
 		    (send-all *joint-list* :joint-torque)
 		    *mirror-bin*
 		    )))
