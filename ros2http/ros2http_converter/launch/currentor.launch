@@ -7,5 +7,5 @@
 	  name="kduino_imu_converter" />
     <node pkg="ros2http"
 	  type="ros2http_listener.sh"
-	  name="ros2http_listener" input="screen" />
+	  name="ros2http_listener" output="screen" />
 </launch>
