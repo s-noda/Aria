@@ -12,11 +12,11 @@
     &key
     (use-torso nil)
     (x (instantiate float-vector 4))
-    (y (instantiate float-vector 2))
+    (y (instantiate float-vector 3))
     (u (instantiate float-vector (if use-torso 2 1)))
-    (maxu (fill (copy-seq u) 10.0))
-    (minu (fill (copy-seq u) -10.0))
-    (mm 1.0)
+    (maxu (fill (copy-seq u) 1e+1))
+    (minu (fill (copy-seq u) -1e+1))
+    (mm 3.0)
     (m 10.0)
     (r 0.5)
     (wr 0.1)
@@ -31,12 +31,12 @@
 	  (send self key (eval sym))))
     '(mm m r wr I g ur ux use-torso))
    (send-super* :init
-		:x x :y y :u u
-		:W (make-matrix 4 4
-				'((2 0 0 0)
-				  (0 2 0 0)
-				  (0 0 0.01 0)
-				  (0 0 0 0.01)
+		:x x :y y :u u :maxu maxu :minu minu
+		:W (make-matrix 2 4
+				'((0.1 0 0 0)
+				  (0 0.1 0 0)
+				  ;;(0 0 0.01 0)
+				  ;;(0 0 0 0.01)
 				  ))
 		args)
    )
@@ -84,7 +84,7 @@
 		   (list 0 +1))))
 	  ))
   (:C (&rest args)
-      (make-matrix 2 4 (list (list 1 0 0 0) (list 0 1 0 0))))
+      (make-matrix 3 4 (list (list 1 0 0 0) (list 0 1 0 0) (list 0 0 0 1))))
   )
 
 

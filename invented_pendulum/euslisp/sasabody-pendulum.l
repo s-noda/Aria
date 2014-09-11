@@ -73,6 +73,7 @@
     (x::window-main-one)))
   )
 
+(defvar *gyro* 0)
 (defun imu-callback
   (msg
    &key
@@ -85,11 +86,19 @@
 	 (tmp-coords (make-coords :rot mat))
 	 (move-coords (copy-object (send (send *robot* :get :imu-coords) :worldcoords)))
 	 )
+    (setq *gyro*
+	  (+ (* -0.5 (/ (* 2279 3.14) (* 180 (/ 32767 4.0)))
+		(send (send msg :angular_velocity) :y))
+	     (* 0.5 *gyro*)))
     (setq move-coords (send move-coords :transformation *robot*))
     (send tmp-coords :transform move-coords :local)
     (dotimes (i 3)
       ;; (send *robot* :newcoords (make-coords :rot mat)))
-      (send *robot* :newcoords (copy-object tmp-coords))
+      (send *robot* :newcoords ;; (copy-object tmp-coords))
+	    (copy-object (make-coords;; :pos (send tmp-coords :worldpos)
+			  :rpy (map cons #'*
+				    #F(0 1 1)
+				    (car (rpy-angle (send tmp-coords :worldrot)))))))
       (send *robot* :worldcoords)
       ;; (send *robot* ;;(car (send *robot* :links))
       ;; 	    :transform
@@ -123,12 +132,24 @@
 		std_msgs::float32multiarray)
 
 
+;; (defun calc-tilt
+;;   nil
+;;   (let* ((x (transform (send *robot* :worldrot) #F(1 0 0)))
+;; 	 (z ;;(transform (send *robot* :worldrot) #F(0 0 1)))
+;; 	  (normalize-vector (map float-vector #'* #F(1 0 1) (send *robot* :centroid))))
+;; 	 )
+;;     (*
+;;      (if (plusp (v. (v* x #F(1 0 0)) (v* z #F(1 0 0)))) -1 1)
+;;      (acos (v. z #F(0 0 1))))))
+
 (defun calc-tilt
   nil
   (let* ((x (transform (send *robot* :worldrot) #F(1 0 0)))
-	 (z (transform (send *robot* :worldrot) #F(0 0 1))))
+	 (z ;;(transform (send *robot* :worldrot) #F(0 0 1)))
+	  (normalize-vector (map float-vector #'* #F(1 0 1) (send *robot* :centroid))))
+	 )
     (*
-     (if (plusp (v. (v* x #F(1 0 0)) (v* z #F(1 0 0)))) -1 1)
+     (if (plusp (aref z 0)) 1 -1)
      (acos (v. z #F(0 0 1))))))
 
 (defvar *wheel-zero* (send-all (subseq (reverse *joint-list*) 0 2) :joint-angle))
@@ -149,12 +170,34 @@
 			     #'(lambda (a b) (< (abs a) (abs b)))))))
 		  *prev-wheel-angle-raw*
 		  *prev-wheel-angle*
-		  (send-all (subseq (reverse *joint-list*) 0 2) :joint-angle))))
-    (print now)
+		  (setq *prev-wheel-angle-raw*
+			(send-all (subseq (reverse *joint-list*) 0 2) :joint-angle)))))
+    ;; (print now)
     (* r
        (deg2rad
 	(v. #F(-0.5 0.5)
 	    (map float-vector #'- (setq *prev-wheel-angle* now) *wheel-zero*))))))
+
+(defun calc-inertia-tensor-from-coords ;; RTIR + m[cx]T[cx]
+  (c
+   &key
+   (link-list (send *robot* :links))
+   (meter? t))
+  (reduce
+   #'m+
+   (mapcar
+    #'(lambda (l)
+        (let* ((p (outer-product-matrix (v- (send l :worldpos)
+                                            (send c :worldpos))))
+               (r (m* (transpose (send c :worldrot))
+                      (send l :worldrot)))
+               (i (send l :inertia-tensor))
+               (m (send l :weight))
+               (ret
+                (m+ (m* (transpose r) (m* i r))
+                    (scale-matrix m (m* (transpose p) p)))))
+          (if meter? (scale-matrix 1e-9 ret) ret)))
+    link-list)))
 
 (ros::rate 100)
 (do-until-key
@@ -171,5 +214,5 @@
   ;; (print (calc-forward))
   (ros::publish "/invented_pendulum/sensor_vector"
 		(instance std_msgs::float32multiarray :init
-			  :data (float-vector (calc-forward) (calc-tilt))))
+			  :data (print (float-vector (calc-forward) (calc-tilt) 0 *gyro*))))
   ))

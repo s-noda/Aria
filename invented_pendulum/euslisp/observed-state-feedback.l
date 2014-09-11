@@ -59,6 +59,8 @@
     (y^ (send self :y^))
     ;;
     (ys)
+    (x-callback)
+    (x^-callback)
     )
    (setq
     u
@@ -66,25 +68,27 @@
 	 #'(lambda (min u max)
 	     (let ((u_ (min max (max min u))))
 	       (if (or (< u min) (> u max))
-		   (format t " [:update] warn u E/ (~A ~A) -> ~A~%" min max u_))
+		   (format t " [:update] warn u=~A E/ (~A ~A) -> ~A~%" u min max u_))
 	       u_))
 	 minu u maxu))
    ;; (setq u (vmax minu (vmin maxu u)))
    (send self :u u)
    (send self :dx (setq dx (v+ (transform A x) (transform B u))))
    (send self :x (setq x (v+ x (scale tm dx))))
+   (if (functionp x-callback) (send self :x (setq x (funcall x-callback x))))
    (send self :y (setq y (or ys (v+ (transform C x) (transform D u)))))
    (send self :dx^ (setq dx^ (v+ (transform (m- A (m* L C)) x^)
 				 (v+ (transform B u)
 				     (transform L (v- y (transform D u)))))))
    (send self :x^ (setq x^ (v+ x^ (scale tm dx^))))
+   (if (functionp x^-callback) (send self :x^ (setq x^ (funcall x^-callback x^))))
    (send self :y^ (v+ (transform D u) (transform C x^)))
    (send self :timer (instance mtimer :init))
    (v- v (transform F x^))
    )
   (:simulation
    (&key (stop 300)
-	 (step 0.01)
+	 (step 0.03)
 	 ret
 	 (return-callback nil)
 	 ;;#'(lambda (id &rest args) (send self :x)))
@@ -102,7 +106,10 @@
 		    )))
 	 (init (progn
 		 (send self :x
-		       (map float-vector #'(lambda (a) (- (* 2 (random 0.1)) 0.1)) x))
+		       ;; (map float-vector #'(lambda (a) (- (* 2 (random 0.1)) 0.1)) x))
+		       (concatenate float-vector
+				    (subseq (random-vector 0.1) 0 2)
+				    '(0 0)))
 		 (send self :y (scale 0 y))
 		 (send self :y^ (scale 0 y))))
 	 (debug? nil)
