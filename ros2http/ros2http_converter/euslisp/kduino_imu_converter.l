@@ -45,6 +45,7 @@
 		sensor_msgs::imu
 		1)
 
+(ros::rate 100)
 (do-until-key
  (if (not (ros::ok)) (return-from nil nil))
  (ros::spin-once)
