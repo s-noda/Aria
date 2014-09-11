@@ -18,12 +18,12 @@
     (minu (fill (copy-seq u) -1e+1))
     (mm 3.0)
     (m 10.0)
-    (r 1.5)
+    (r 0.5)
     (wr 0.1)
-    (I 20)
+    (I 7)
     (g 9.8)
-    (ur 3.0)
-    (ux 3.0)
+    (ur -0.3)
+    (ux -0.3)
     &allow-other-keys)
    (mapcar
     #'(lambda (sym)
@@ -32,8 +32,8 @@
     '(mm m r wr I g ur ux use-torso))
    (send-super* :init
 		:x x :y y :u u :maxu maxu :minu minu
-		:W (make-matrix 2 4
-				'((10 0 0 0)
+		:W (make-matrix 1 4
+				'(;;(10 0 0 0)
 				  (0 1 0 0)
 				  ;;(0 0 0.01 0)
 				  ;;(0 0 0 0.01)
@@ -74,13 +74,13 @@
 	       4 1
 	       (list (list 0)
 		     (list 0)
-		     (list (* +1 r))
+		     (list (/ +1 wr))
 		     (list 0)))
 	    (make-matrix
 	     4 2
 	     (list (list 0 0)
 		   (list 0 0)
-		   (list (* +1 r) 0)
+		   (list (/ +1 wr) 0)
 		   (list 0 +1))))
 	  ))
   (:C (&rest args)
