@@ -108,10 +108,12 @@
 		 (send self :x
 		       ;; (map float-vector #'(lambda (a) (- (* 2 (random 0.1)) 0.1)) x))
 		       (concatenate float-vector
-				    (subseq (random-vector 0.1) 0 2)
+				    #F(0)
+				    (subseq (random-vector 0.2) 0 1)
 				    '(0 0)))
 		 (send self :y (scale 0 y))
 		 (send self :y^ (scale 0 y))))
+	 (umax-buf (copy-seq (send self :x)))
 	 (debug? nil)
 	 )
    (send self :x^ (send self :x))
@@ -119,6 +121,7 @@
      (if return-callback (push (funcall return-callback i) ret))
      (if graph (push (funcall graph-callback i) graph-buf))
      (if debug? (format t " x --> ~A~%" (send self :x)))
+     (setq umax-buf (map float-vector #'(lambda (max u) (if (< (abs max) (abs u)) u max)) umax-buf (send self :u)))
      (send self :update :tm step))
    (format t "[simulation in ~A sec]~% x=~A~% dx=~A~% x_dif=~A~%"
 	   (* stop step)
@@ -139,6 +142,7 @@
 				      graph-buf))
 			  (remove :tm (mapcar #'car (car graph-buf))))))
      (send graph :fit-draw)))
+   (format t " maximum input ~A~%" umax-buf)
    ret
    )
   (:solve-riccati
@@ -152,7 +156,7 @@
     (max 500000)
     (conv-thre-rate 1e-6)
     (max-conv-thre 1e-6)
-    (min-conv-thre 1e-12)
+    (min-conv-thre 1e-36)
     (conv-thre)
     (conv-flag nil)
     (P (make-matrix (length x) (length x)))

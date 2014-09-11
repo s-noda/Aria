@@ -18,9 +18,9 @@
     (minu (fill (copy-seq u) -1e+1))
     (mm 3.0)
     (m 10.0)
-    (r 0.5)
+    (r 1.5)
     (wr 0.1)
-    (I 7.5)
+    (I 20)
     (g 9.8)
     (ur 3.0)
     (ux 3.0)
@@ -33,8 +33,8 @@
    (send-super* :init
 		:x x :y y :u u :maxu maxu :minu minu
 		:W (make-matrix 2 4
-				'((0.1 0 0 0)
-				  (0 0.1 0 0)
+				'((10 0 0 0)
+				  (0 1 0 0)
 				  ;;(0 0 0.01 0)
 				  ;;(0 0 0 0.01)
 				  ))
@@ -91,7 +91,9 @@
 (defun demo-invented-pendulum
   nil
   (bench
-   (defvar *ip* (instance invented-pendulm :init))
+   (defvar *ip* (instance invented-pendulm :init
+			  :maxu (fill (instantiate float-vector 2) 50)
+			  :minu (fill (instantiate float-vector 2) -50)))
    (send *ip* :riccati-l)
    (send *ip* :riccati-f)
    (send *ip* :check-f)
