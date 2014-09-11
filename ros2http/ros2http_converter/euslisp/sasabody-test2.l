@@ -122,6 +122,20 @@
   			  :data *joint-vector*))
   )
 
+(defun fight-pose
+  nil
+  (call-function :func "setModesTorque2Null")
+  (call-function :func "setModesNull2Position")
+  (dotimes (i 20)
+    (setf (aref *joint-vector* (+ 1 i)) 2))
+  (dotimes (i 3) (torque-command *joint-vector* :command "mode"))
+  (unix:sleep 3)
+  (fill *joint-vector* 0)
+  (setf (aref *joint-vector* 5) 1.57)
+  (setf (aref *joint-vector* 12) -1.57)
+  (dotimes (i 3) (torque-command *joint-vector* :command "position"))
+  )
+
 ;; (defun torque-command (tv) nil)
 
 (ros::advertise "/currentor_socket/request/mode_vector"
