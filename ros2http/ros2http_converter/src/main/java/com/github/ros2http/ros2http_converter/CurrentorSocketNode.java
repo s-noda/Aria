@@ -86,9 +86,10 @@ public class CurrentorSocketNode extends SocketListener {
 									CurrentorSocketNode.this.hostname,
 									CurrentorSocketNode.this.portno)) {
 						String res;
+						String command;
 						switch ( CurrentorSocketNode.this.mode ){
 						case CurrentorSocketNode.TRQ:
-						    String command = CurrentorUtil.encodeJsonCommand("setTorques",
+						    command = CurrentorUtil.encodeJsonCommand("setTorques",
 												     CurrentorSocketNode.this.requested_data);
 						    if ( command == null ){
 							command = this.default_command ;
@@ -99,6 +100,16 @@ public class CurrentorSocketNode extends SocketListener {
 						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
 						    break;
 						case CurrentorSocketNode.POS:
+						    command = CurrentorUtil.encodeJsonCommand("setPositions",
+												     CurrentorSocketNode.this.requested_data);
+						    if ( command == null ){
+							command = this.default_command ;
+							System.out.println(" -- Position command rejected/");
+						    }
+						    res = CurrentorSocketNode.this.postConnection(command);
+						    // ros_res.setData(res);
+						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
+						    break;
 						case CurrentorSocketNode.MOD:
 						case CurrentorSocketNode.NOP:
 						default:
