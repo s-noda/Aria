@@ -111,6 +111,16 @@ public class CurrentorSocketNode extends SocketListener {
 						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
 						    break;
 						case CurrentorSocketNode.MOD:
+						    command = CurrentorUtil.encodeJsonCommand("setControlModes",
+												     CurrentorSocketNode.this.requested_data);
+						    if ( command == null ){
+							command = this.default_command ;
+							System.out.println(" -- Mode command rejected/");
+						    }
+						    res = CurrentorSocketNode.this.postConnection(command);
+						    // ros_res.setData(res);
+						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
+						    break;
 						case CurrentorSocketNode.NOP:
 						default:
 						    res = CurrentorSocketNode.this.postConnection(this.default_command);

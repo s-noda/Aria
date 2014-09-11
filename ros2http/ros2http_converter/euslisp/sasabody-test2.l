@@ -113,10 +113,10 @@
     ))
 
 (defun torque-command
-  (tv)
+  (tv &key (command "torque"))
   (dotimes (i (length tv))
     (setf (aref *joint-vector* i) (elt tv i)))
-  (ros::publish "/currentor_socket/request/torque_vector"
+  (ros::publish (format nil "/currentor_socket/request/~A_vector" command)
   		(instance std_msgs::float32multiarray
   			  :init
   			  :data *joint-vector*))
@@ -124,6 +124,10 @@
 
 ;; (defun torque-command (tv) nil)
 
+(ros::advertise "/currentor_socket/request/mode_vector"
+		std_msgs::float32multiarray)
+(ros::advertise "/currentor_socket/request/position_vector"
+		std_msgs::float32multiarray)
 (ros::advertise "/currentor_socket/request/torque_vector"
 		std_msgs::float32multiarray)
 (ros::subscribe "/currentor_socket/sensor_array/position"
