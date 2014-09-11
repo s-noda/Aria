@@ -22,12 +22,12 @@
 			 :x (aref q 1)
 			 :y (aref q 2)
 			 :z (aref q 3))
-	       :angular_velocity
+	       :linear_acceleration
 	       (instance geometry_msgs::vector3 :init
 			 :x (aref acc 0)
 			 :y (aref acc 1)
 			 :z (aref acc 2))
-	       :linear_acceleration
+	       :angular_velocity
 	       (instance geometry_msgs::vector3 :init
 			 :x (aref gyr 0)
 			 :y (aref gyr 1)
