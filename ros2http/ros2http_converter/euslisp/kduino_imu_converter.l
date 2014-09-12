@@ -7,7 +7,7 @@
 (ros::roseus "kduino_imu_converter")
 
 (defvar *gyro-gain* (/ (* 2279 3.14) (* 180 (/ 32767 4.0))))
-(defvar *acc-gain* (9.79 / 512.0))
+(defvar *acc-gain* (/ 9.79 512.0))
 
 (defun kduino_imu_converter
   (msg)
