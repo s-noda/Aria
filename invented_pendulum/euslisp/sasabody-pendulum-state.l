@@ -35,7 +35,7 @@
 				 (send ori :y) (send ori :z))))
 	 (mat (send (make-coords
 		     :rpy (map cons #'*
-			       #F(0 1 1)
+			       '(0 1 1)
 			       (car (rpy-angle mat-raw))))
 		    :worldrot))
 	 )
@@ -82,8 +82,11 @@
   (rot)
   (let* ((x (transform rot #F(1 0 0)))
 	 (v (normalize-vector
-	     (map float-vector #'* #F(1 0 1)
-		  (transform rot *centroid*)))))
+	     (v+
+	      (map float-vector #'* #F(1 0 1)
+		   (transform rot *centroid*))
+	      #F(0 0 0.05))
+	     )))
     ;;(format t ">>>>>>>>>>>> ")
     ;;(print
      (* (if (plusp (v. v #F(1 0 0))) -1 1)
