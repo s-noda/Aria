@@ -65,8 +65,8 @@
 	  (send *ip* :update :u *u* :ys (transform (send *ip* :C) *x*)
 		:x-callback #'(lambda (x)
 				(v+
-				 (map float-vector #'* #F(0 0 1 0) x)
-				 (map float-vector #'* #F(1 1 0 1) *x*)))
+				 (map float-vector #'* #F(0 0 0 0) x)
+				 (map float-vector #'* #F(1 1 1 1) *x*)))
 		:x^-callback #'(lambda (x)
 				 (v+
 				  (map float-vector #'* #F(1 0 1 0) x)
