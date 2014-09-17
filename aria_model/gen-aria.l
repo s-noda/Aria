@@ -35,7 +35,7 @@
 
 (defvar *robot-data* (parse-link.dat))
 (defvar *dae-list* (directory "dae"))
-(defvar *dae-root* "package://euslib/demo/sasabuchi/sasabody/model/dae")
+(defvar *dae-root* "package://euslib/demo/sasabuchi/aria/model/dae")
 
 (defvar *link-definition*
   "<link name=\"~A\">
@@ -234,14 +234,14 @@
 
 (defun gen-urdf
   (&key
-   (path "sasabody.urdf")
+   (path "aria.urdf")
    (data *robot-data*)
    (id (cdr (assoc :id data)))
    (parent (cdr (assoc :parent data)))
    )
   (let* ((out (open path :direction :output))
 	 )
-    (format out "<?xml version=\"1.0\" ?>~%<robot name=\"sasabody\">~%")
+    (format out "<?xml version=\"1.0\" ?>~%<robot name=\"aria\">~%")
     (format out "<link name=\"base\"></link>~%")
     (mapcar
      #'(lambda (i)
