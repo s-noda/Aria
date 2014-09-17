@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package>
+  <name>aria_model</name>
+  <version>0.1.0</version>
+  <description>The aria_model package</description>
+  <maintainer email="s-noda@jsk.imi.i.u-tokyo.ac.jp">s-noda</maintainer>
+  <license>NYSL</license>
+  <export>
+  </export>
+</package>
