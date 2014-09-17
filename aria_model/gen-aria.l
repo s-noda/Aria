@@ -35,7 +35,7 @@
 
 (defvar *robot-data* (parse-link.dat))
 (defvar *dae-list* (directory "dae"))
-(defvar *dae-root* "package://euslib/demo/sasabuchi/aria/model/dae")
+(defvar *dae-root* "package://aria_model/dae")
 
 (defvar *link-definition*
   "<link name=\"~A\">
