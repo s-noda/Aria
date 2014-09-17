@@ -1,0 +1,42 @@
+##
+## - collada_joint_name : euslisp_joint_name (start with :)
+##
+
+larm:
+  - arm_l_hand1 : larm-hand
+  - arm_l_joint7 : larm-wrist-p
+  - arm_l_joint6 : larm-wrist-y
+  - arm_l_joint5 : larm-elbow-p
+  - arm_l_joint4 : larm-elbow-y
+  - arm_l_joint3 : larm-shoulder-r
+  - arm_l_joint2 : larm-shoulder-p
+  - arm_l_joint1 : larm-shoulder-y
+rarm:
+  - arm_r_hand1 : rarm-hand
+  - arm_r_joint7 : rarm-wrist-p
+  - arm_r_joint6 : rarm-wrist-y
+  - arm_r_joint5 : rarm-elbow-p
+  - arm_r_joint4 : rarm-elbow-y
+  - arm_r_joint3 : rarm-shoulder-r
+  - arm_r_joint2 : rarm-shoulder-p
+  - arm_r_joint1 : rarm-shoulder-y
+torso:
+  - body : torso-waist-p
+  - hip3 : torso-waist-r
+  - hip2 : torso-waist-y
+head:
+  - neck1 : head-neck-y
+  - neck2 : head-neck-r
+  - neck3 : head-neck-p
+
+angle-vector:
+  reset-pose : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+larm-end-coords:
+  parent : arm_l_hand1_link
+  translate : [0, 0, 0]
+  rotate : [0, 1, 0, 0]
+rarm-end-coords:
+  parent : arm_r_hand1_link
+  translate : [0, 0, 0.0]
+  rotate : [0, 1, 0, 0]
