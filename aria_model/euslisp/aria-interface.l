@@ -96,6 +96,8 @@
 		   std_msgs::float32multiarray)
    (ros::advertise "/currentor_socket/request/torque_vector"
 		   std_msgs::float32multiarray)
+   (ros::advertise "/aria_interpolator/position"
+		   std_msgs::string)
    )
   (:state
    (&rest args)
@@ -211,9 +213,15 @@
 		 (instance std_msgs::float32multiarray
 			   :init
 			   :data joint-vector)))
-  (:angle-vector
+  (:_angle-vector
    (&optional (vector (send robot :angle-vector)))
    (send self :send-vector vector 'position))
+  (:angle-vector
+   (&optional (vector (send robot :angle-vector)) (tm 5000))
+   (ros::publish "/aria_interpolator/position"
+		 (instance std_msgs::string
+			   :init
+			   :data (format nil "(~A ~A)" vector tm))))
   (:torque-vector
    (&optional (vector (send robot :torque-vector)))
    (send self :send-vector vector 'torque))
