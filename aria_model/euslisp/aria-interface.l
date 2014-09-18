@@ -227,9 +227,25 @@
   (setq *ri* (instance aria-interface :init))
   (setq *aria* (aria))
   (setq *robot* *aria*)
+  (send-all (send *robot* :joint-list) :min-angle -10000)
+  (send-all (send *robot* :joint-list) :max-angle 10000)
   (objects *robot*)
   (send *irtviewer* :change-background #F(0.9 0.9 0.9))
   (send *irtviewer* :draw-objects))
+
+(defun model2real
+  nil
+  (send *ri* :angle-vector
+	(send *robot* :angle-vector)))
+
+(defun real2model
+  (&key (draw? t))
+  (send *robot* :angle-vector
+	(send *ri* :state :potentio-vector))
+  (send *robot* :newcoords
+	(send *ri* :state :worldcoords :spin? nil))
+  (if draw? (send *viewer* :draw-objects))
+  )
 
 (defun cancel-gravity
   (&key (hz 50) (send-torque? t))
@@ -272,4 +288,6 @@
 	 (if (send *ri* :get-val 'position-updated) (incf pub-cnt))
 	 (send *ri* :set-val 'position-updated nil)
 	 )))))))
+
+
 
