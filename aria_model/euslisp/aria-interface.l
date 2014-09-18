@@ -232,7 +232,7 @@
   (send *irtviewer* :draw-objects))
 
 (defun cancel-gravity
-  (&key (hz 50))
+  (&key (hz 50) (send-torque? t))
   (ros::rate hz)
   (let ((time-step (/ 1.0 hz))
 	(cnt 0)
@@ -257,7 +257,7 @@
 	 ;;(send *viewer* :viewsurface :flush)
 	 (send *viewer* :draw-objects)
 	 (x::window-main-one)
-	 (if (send *ri* :get-val 'position-updated)
+	 (if (and send-torque? (send *ri* :get-val 'position-updated))
 	     (send *ri* :torque-vector
 		   (send *robot* :calc-torque
 			 :target-coords (list (send *robot* :rarm :end-coords)
