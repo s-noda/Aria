@@ -11,6 +11,6 @@ echo " build in $PROJECT_DIR";
 
 cd $PROJECT_DIR;
 roseus "(progn (load \"gen-aria.l\") (gen-urdf) (exit 1))" ;
-rosrun collada_urdf_jsk_patch urdf_to_collada aria.urdf aria.dae ;
+rosrun collada_urdf urdf_to_collada aria.urdf aria.dae ;
 rosrun euscollada collada2eus aria.dae  aria.yaml aria.l ;
 ## roseus "(progn (load \"aria.l\") (objects (list (setq a (aria)))))";

@@ -4,6 +4,8 @@
   <version>0.1.0</version>
   <description>The aria_model package</description>
   <maintainer email="s-noda@jsk.imi.i.u-tokyo.ac.jp">s-noda</maintainer>
+  <build_depend>euscollada</build_depend>
+  <build_depend>collada_urdf</build_depend>
   <license>NYSL</license>
   <export>
   </export>
