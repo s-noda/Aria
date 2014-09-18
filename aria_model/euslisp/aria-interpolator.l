@@ -11,20 +11,19 @@
   (let* ((args (read-from-string (send msg :data)))
 	 (av (car args))
 	 (tm (cadr args))
-	 (min-tm 10.0)
+	 (min-tm 50.0)
 	 (cnt (/ tm min-tm))
 	 rate mtm)
     (format t "[start-interpolation] ~A~%" (send msg :data))
     (setq mtm (instance mtimer :init))
     (dotimes (i (+ cnt 1))
-      (setq rate (/ i cnt))
+      (setq rate (/ (* 1.0 i) cnt))
       (send *ri* :_angle-vector
-	    (v+ (scale rate (send *robot* :angle-vector))
-		(scale (- 1 rate) av)))
+	    (v+ (scale (- 1 rate) (send *robot* :angle-vector))
+		(scale rate av)))
       (unix:usleep (round (* min-tm 1000))))
     (format t "   ~A~%" (send mtm :stop))
     ))
-
 
 (ros::subscribe "/aria_interpolator/position"
 		std_msgs::string
