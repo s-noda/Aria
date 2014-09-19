@@ -279,7 +279,7 @@
 	<origin xyz=\"0 0 0\" rpy=\"0 0 0\" />
 	<geometry>
 	  <box size=\"0.037 0.18 0.025\"/>
-	  <!--<mesh filename=\"/opt/ros/hydro/share/hector_sensors_description/meshes/asus_camera/asus_camera_simple.dae\"/>-->
+	  <!--<mesh filename=\"package://hector_sensors_description/meshes/asus_camera/asus_camera_simple.dae\"/>-->
 	</geometry>
       </visual>
       <collision>
