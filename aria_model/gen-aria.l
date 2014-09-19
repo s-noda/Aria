@@ -262,6 +262,57 @@
 		   (nth (position i id) (cdr (assoc :name data)))
 		   (nth (position i id) (cdr (assoc :name data)))))))
      id)
+    ;; ssb
+    (format out "~A~%"
+	    "<joint name=\"camera_joint\" type=\"fixed\">
+      <origin xyz=\"0 0.06 0\" rpy=\"-1.57 0 0\"/>
+      <parent link=\"neck3_link\"/>
+      <child link=\"camera_link\"/>
+    </joint>
+    <link name=\"camera_link\">
+      <inertial>
+	<mass value=\"0.200\" />
+	<origin xyz=\"0 0 0\" rpy=\"0 0 0\" />
+	<inertia ixx=\"5.8083e-4\" ixy=\"0\" ixz=\"0\" iyy=\"3.0833e-5\" iyz=\"0\" izz=\"5.9083e-4\" />
+      </inertial>
+      <visual>
+	<origin xyz=\"0 0 0\" rpy=\"0 0 0\" />
+	<geometry>
+	  <box size=\"0.037 0.18 0.025\"/>
+	  <!--<mesh filename=\"/opt/ros/hydro/share/hector_sensors_description/meshes/asus_camera/asus_camera_simple.dae\"/>-->
+	</geometry>
+      </visual>
+      <collision>
+	<origin xyz=\"0 0 0\" rpy=\"0 0 0\" />
+	<geometry>
+	  <box size=\"0.035 0.185 0.025\"/>
+	</geometry>
+      </collision>
+    </link>
+    <joint name=\"camera_depth_joint\" type=\"fixed\">
+      <origin xyz=\"0.0 0.049 0.0\" rpy=\"0 0 0\" />
+      <parent link=\"camera_link\" />
+      <child link=\"camera_depth_frame\"/>
+    </joint>
+    <link name=\"camera_depth_frame\"/>
+    <joint name=\"camera_depth_optical_joint\" type=\"fixed\">
+      <origin xyz=\"0 0 0\" rpy=\"-1.57 0.0 -1.57\" />
+      <parent link=\"camera_depth_frame\" />
+      <child link=\"camera_depth_optical_frame\"/>
+    </joint>
+    <link name=\"camera_depth_optical_frame\"/>
+    <joint name=\"camera_rgb_joint\" type=\"fixed\">
+      <origin xyz=\"0.0 0.022 0.0\" rpy=\"0 0 0\" />
+      <parent link=\"camera_link\" />
+      <child link=\"camera_rgb_frame\"/>
+    </joint>
+    <link name=\"camera_rgb_frame\"/>
+    <joint name=\"camera_rgb_optical_joint\" type=\"fixed\">
+      <origin xyz=\"0 0 0\" rpy=\"-1.57 0.0 -1.57\" />
+      <parent link=\"camera_rgb_frame\" />
+      <child link=\"camera_rgb_optical_frame\"/>
+    </joint>
+    <link name=\"camera_rgb_optical_frame\"/>")
     (mapcar
      #'(lambda (i)
 	 (cond
