@@ -6,6 +6,8 @@
   <maintainer email="s-noda@jsk.imi.i.u-tokyo.ac.jp">s-noda</maintainer>
   <build_depend>euscollada</build_depend>
   <build_depend>collada_urdf</build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>roscpp</buildtool_depend>
   <license>NYSL</license>
   <export>
   </export>
