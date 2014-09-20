@@ -2,9 +2,6 @@
 (require "package://aria_model/aria.l")
 ;; (require "package://eus_eigen/euslisp/eus_eigen.l")
 
-(defvar *robot* (aria))
-(objects (list *robot*))
-
 (defun calc-ddq-coeff-matrix ;; calc H of Hddq + b = t + Jf
   (&key
    (robot *robot*)
@@ -167,21 +164,27 @@
   (/  (norm (v- ans pre)) (norm ans))
   )
 
-(send-all (send *robot* :joint-list) :min-angle *-inf*)
-(send-all (send *robot* :joint-list) :max-angle *inf*)
-(mapcar
- #'(lambda (l)
-     (if (< (send l :weight) 1) (send l :weight 1))
-     (if (< (norm (send (send l :inertia-tensor) :get-val 'entity)) 100)
-	 (send l :inertia-tensor (scale-matrix 1e+5 (unit-matrix 3))))
-     (if (< (norm (send l :get-val 'acentroid)) 1e-3)
-	 (send l :set-val 'acentroid (float-vector 1e-3 1e-3 1e-3))))
- (send *robot* :links))
-
 (defun debug-calc-ddq-coeff-matrix-simulation
   (&rest
    args
    &key
+   (init
+    (progn
+      (setq *robot* (aria))
+      (objects (list *robot*))
+      (send-all (send *robot* :joint-list) :min-angle *-inf*)
+      (send-all (send *robot* :joint-list) :max-angle *inf*)
+      (mapcar
+       #'(lambda (l)
+	   (if (< (send l :weight) 1) (send l :weight 1))
+	   (if (< (norm (send (send l :inertia-tensor)
+			      :get-val 'entity)) 100)
+	       (send l :inertia-tensor
+		     (scale-matrix 1e+5 (unit-matrix 3))))
+	   (if (< (norm (send l :get-val 'acentroid)) 1e-3)
+	       (send l :set-val 'acentroid
+		     (float-vector 1e-3 1e-3 1e-3))))
+       (send *robot* :links))))
    (robot *robot*)
    (all-links ;;(cdr (send robot :links)))
     (cdr (send robot :rarm :links)))
@@ -222,6 +225,7 @@
    (animate-cnt (round (/ animate-time-step sim-time-step)))
    (animate-timer (if animate? (instance mtimer :init)))
    ;;
+   callback
    )
   (do-until-key
    (if(> (setq sim-time-buf (+ sim-time-buf sim-time-step))
@@ -255,8 +259,10 @@
 	      (/ animate-time-step (send animate-timer :stop)))
       (send animate-timer :start)
       (x::window-main-one)
-      (send *viewer* :draw-objects)
+      (if (and (boundp '*viewer*) *viewer*)
+	  (send *viewer* :draw-objects))
       ))
+    (if (functionp callback) (funcall callback sim-time-buf))
     )
   q
   )
