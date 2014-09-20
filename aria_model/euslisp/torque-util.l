@@ -1,5 +1,6 @@
 
 (require "package://aria_model/aria.l")
+;; (require "package://eus_eigen/euslisp/eus_eigen.l")
 
 (defvar *robot* (aria))
 (objects (list *robot*))
@@ -185,10 +186,10 @@
    (all-links ;;(cdr (send robot :links)))
     (cdr (send robot :rarm :links)))
    (q (map float-vector
-	   #'(lambda (v) (* 1 (- (* 2 (random 90.0)) 90)))
+	   #'(lambda (v) (* 1 (- (* 2 (random 180.0)) 180)))
 	   all-links))
    (dq (map float-vector
-	    #'(lambda (v) 0) ;;(- (* 2 (random 1.0)) 1))
+	    #'(lambda (v) (- (* 2 (random 1.0)) 1))
 	    all-links))
    (ddq (map float-vector
 	     #'(lambda (v) (- (* 2 (random 1.0)) 1))
@@ -197,13 +198,15 @@
    (root-spacial-velocity (scale 0 (random-vector 1.0)))
    (root-angular-acceleration (scale 0 (random-vector 1.0)))
    (root-spacial-acceleration (scale 0 (random-vector 1.0)))
-   (sim-time-step 0.1)
+   (sim-time-step 0.01)
    (sim-time-max 1000)
    (sim-time-buf 0)
    (tau (instantiate float-vector (length all-links)))
    ;;
    (friction-matrix
-    (scale-matrix 0.3 (unit-matrix (length all-links))))
+    (scale-matrix 0.1 (unit-matrix (length all-links))))
+   (inertia-matrix
+    (scale-matrix 0.001 (unit-matrix (length all-links))))
    (base-torque? nil)
    (ddq-coeff
     (make-matrix (+ (length all-links) (if base-torque? 6 0))
@@ -213,8 +216,11 @@
    (max-vel 1.5)
    (min-vel -1.5)
    ;;
-   (animate-time-step sim-time-step)
+   (animate-time-step (max 0.2 sim-time-step))
    (animate-cnt (round (/ animate-time-step sim-time-step)))
+   (animate-timer (instance mtimer :init))
+   ;;
+   (ret q)
    )
   (do-until-key
    (if(> (setq sim-time-buf (+ sim-time-buf sim-time-step))
@@ -224,8 +230,16 @@
      :root-spacial-velocity root-spacial-velocity
      :root-angular-velocity root-angular-velocity
      :ddq-coeff ddq-coeff :b b :base-torque? base-torque?)
+    ;; (print (calc-eigen-determinant ddq-coeff))
     (setq ddq# (inverse-matrix ddq-coeff))
-    (if ddq# (setq ddq (transform ddq# (v- (v- tau b) (transform friction-matrix dq)))))
+    ;; (calc-eigen-inverse ddq-coeff))
+    (if ddq#
+	(setq ddq
+	      (transform
+	       ddq#
+	       (v- (v- (v- tau b)
+		       (transform friction-matrix dq))
+		   (transform inertia-matrix ddq)))))
     (setq dq (map float-vector
 		  #'(lambda (v) (min max-vel (max min-vel v)))
 		  (v+ dq (scale sim-time-step ddq))))
@@ -235,8 +249,14 @@
      ((minusp (decf animate-cnt))
       (setq animate-cnt
 	    (round (/ animate-time-step sim-time-step)))
-      (format t " time = ~A~%" sim-time-buf)
+      (format t " time = ~A x~A~%"
+	      sim-time-buf
+	      (/ animate-time-step (send animate-timer :stop)))
+      (send animate-timer :start)
       (x::window-main-one)
-      (send *viewer* :draw-objects)))
-    ))
+      (send *viewer* :draw-objects)
+      ))
+    )
+  ret
+  )
 
