@@ -81,9 +81,17 @@
 		   std_msgs::float32multiarray
 		   #'send self :position-callback
 		   1)
+   (ros::subscribe "/currentor_socket/sensor_array/velocity"
+		   std_msgs::float32multiarray
+		   #'send self :velocity-callback
+		   1)
    (ros::subscribe "/currentor_socket/sensor_array/torque"
 		   std_msgs::float32multiarray
 		   #'send self :torque-callback
+		   1)
+   (ros::subscribe "/currentor_socket/sensor_array/temperature"
+		   std_msgs::float32multiarray
+		   #'send self :temperature-callback
 		   1)
    (ros::subscribe "/currentor_socket/sensor_array/mode"
 		   std_msgs::float32multiarray
@@ -134,8 +142,9 @@
     (gain (map float-vector
 	       #'(lambda (bin)
 		   (cond
-		    ((eq command 'torque) (* bin 0.1))
+		    ((eq command 'torque) (/ bin -9.8))
 		    ((eq command 'position) (* bin (rad2deg 1)))
+		    ((eq command 'velocity) (* bin (rad2deg 1)))
 		    (t 1)))
 	       mirror-bin))
     (etc-command (cond
@@ -161,9 +170,17 @@
      (send *viewer* :draw-objects)
      (x::window-main-one)))
    )
+  (:velocity-callback
+   (msg &key (draw? nil))
+   (send self :callback-org msg :command 'velocity)
+   )
   (:torque-callback
    (msg &key (draw? nil))
    (send self :callback-org msg :command 'torque)
+   )
+  (:velocity-callback
+   (msg &key (draw? nil))
+   (send self :callback-org msg :command 'temperature)
    )
   (:mode-callback
    (msg &key (draw? nil))
