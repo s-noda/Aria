@@ -201,7 +201,8 @@
    (sim-time-step 0.01)
    (sim-time-max 1000)
    (sim-time-buf 0)
-   (tau (instantiate float-vector (length all-links)))
+   (tau (list (instantiate float-vector (length all-links))))
+   (tau0 (car (last tau)))
    ;;
    (friction-matrix
     (scale-matrix 0.1 (unit-matrix (length all-links))))
@@ -216,11 +217,11 @@
    (max-vel 1.5)
    (min-vel -1.5)
    ;;
+   (animate? t)
    (animate-time-step (max 0.2 sim-time-step))
    (animate-cnt (round (/ animate-time-step sim-time-step)))
-   (animate-timer (instance mtimer :init))
+   (animate-timer (if animate? (instance mtimer :init)))
    ;;
-   (ret q)
    )
   (do-until-key
    (if(> (setq sim-time-buf (+ sim-time-buf sim-time-step))
@@ -237,7 +238,7 @@
 	(setq ddq
 	      (transform
 	       ddq#
-	       (v- (v- (v- tau b)
+	       (v- (v- (v- (or (pop tau) tau0) b)
 		       (transform friction-matrix dq))
 		   (transform inertia-matrix ddq)))))
     (setq dq (map float-vector
@@ -246,7 +247,7 @@
     (setq q (v+ q (scale (rad2deg sim-time-step) dq)))
     ;; (format t "  (~A)  ddq=~A~%" sim-time-buf ddq)
     (cond
-     ((minusp (decf animate-cnt))
+     ((and animate? (minusp (decf animate-cnt)))
       (setq animate-cnt
 	    (round (/ animate-time-step sim-time-step)))
       (format t " time = ~A x~A~%"
@@ -257,6 +258,6 @@
       (send *viewer* :draw-objects)
       ))
     )
-  ret
+  q
   )
 
