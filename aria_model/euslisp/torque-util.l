@@ -203,15 +203,15 @@
    (tau (instantiate float-vector (length all-links)))
    ;;
    (friction-matrix
-    (scale-matrix 0.1 (unit-matrix (length all-links))))
+    (scale-matrix 0.3 (unit-matrix (length all-links))))
    (base-torque? nil)
    (ddq-coeff
     (make-matrix (+ (length all-links) (if base-torque? 6 0))
 		 (+ (length all-links) (if base-torque? 6 0))))
    (b (instantiate float-vector (+ (length all-links) (if base-torque? 6 0))))
    ddq#
-   (max-vel 0.5)
-   (min-vel -0.5)
+   (max-vel 1.5)
+   (min-vel -1.5)
    ;;
    (animate-time-step sim-time-step)
    (animate-cnt (round (/ animate-time-step sim-time-step)))
