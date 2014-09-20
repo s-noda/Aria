@@ -33,6 +33,18 @@
   (:integer :string :string :string :string :string)
   :integer)
 
+(defforeign _calc-eigen-inverse
+  *eigen-plugin*
+  "calc_inverse_matrix"
+  (:integer :string :string)
+  :integer)
+
+(defforeign _calc-eigen-determinant
+  *eigen-plugin*
+  "calc_determinant"
+  (:integer :string)
+  :float)
+
 (defun calc-eigen
   (&key
    (mat (diagonal (random-vector 1.0)))
@@ -45,7 +57,24 @@
   (_calc-eigen n (send mat :get-val 'entity) peigenval neigenval peigenvec neigenvec)
   )
 
-(defun calc-eigen-test
+(defun calc-eigen-inverse
+  (mat
+   &key
+   (ret-mat (copy-object mat))
+   (ret-vec (send ret-mat :get-val 'entity))
+   (n (send mat :get-val 'dim0))
+   (mat-vec (send mat :get-val 'entity)))
+  (_calc-eigen-inverse n mat-vec ret-vec)
+  ret-mat)
+
+(defun calc-eigen-determinant
+  (mat
+   &key
+   (n (send mat :get-val 'dim0))
+   (mat-vec (send mat :get-val 'entity)))
+  (_calc-eigen-determinant n mat-vec))
+
+(defun debug-calc-eigen
   (&key
    (mat (diagonal (random-vector 1.0)))
    (n (send mat :get-val 'dim0))
@@ -59,4 +88,30 @@
   (format t "   target~%")
   (format-array mat)
   (format t "   eigen~% ~A~%" peigenval)
+  )
+
+(defun debug-calc-eigen-inverse
+  (&key
+   (n 3)
+   (mat (make-matrix n n))
+   (unit (unit-matrix n))
+   (det)
+   (inv-mat)
+   (inv-mat2)
+   )
+  (dotimes (i n) (dotimes (j n) (setf (aref mat i j) (- (* 2 (random 1.0)) 1.0))))
+  (setq det (calc-eigen-determinant mat))
+  (format t "[calc-eigen-inverse-test]~%")
+  (format t " -- det = ~A~%" det)
+  (format t " -- eigen inverse ~%" det)
+  (format-array (bench (setq inv-mat (calc-eigen-inverse mat))))
+  (format t " -- -- dif = ~A~%"
+	  (norm (v- (send (m* inv-mat mat) :get-val 'entity)
+		    (send unit :get-val 'entity))))
+  (format t " -- eigen inverse ~%" det)
+  (format-array (bench (setq inv-mat2 (inverse-matrix mat))))
+  (format t " -- -- dif = ~A~%"
+	  (norm (v- (send (m* inv-mat2 mat) :get-val 'entity)
+		    (send unit :get-val 'entity))))
+  det
   )

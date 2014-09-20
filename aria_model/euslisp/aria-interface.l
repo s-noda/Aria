@@ -8,6 +8,10 @@
 
 ;;(ros::unsubscribe "/ros2http/socket_listener/reponse")
 
+(defvar *ri*)
+(defvar *aria*)
+(defvar *robot*)
+
 (defclass aria-interface
   :super object
   :slots (robot imu-coords joint-cnt
@@ -77,9 +81,17 @@
 		   std_msgs::float32multiarray
 		   #'send self :position-callback
 		   1)
+   (ros::subscribe "/currentor_socket/sensor_array/velocity"
+		   std_msgs::float32multiarray
+		   #'send self :velocity-callback
+		   1)
    (ros::subscribe "/currentor_socket/sensor_array/torque"
 		   std_msgs::float32multiarray
 		   #'send self :torque-callback
+		   1)
+   (ros::subscribe "/currentor_socket/sensor_array/temperature"
+		   std_msgs::float32multiarray
+		   #'send self :temperature-callback
 		   1)
    (ros::subscribe "/currentor_socket/sensor_array/mode"
 		   std_msgs::float32multiarray
@@ -130,8 +142,9 @@
     (gain (map float-vector
 	       #'(lambda (bin)
 		   (cond
-		    ((eq command 'torque) (* bin 0.1))
+		    ((eq command 'torque) (/ bin -9.8))
 		    ((eq command 'position) (* bin (rad2deg 1)))
+		    ((eq command 'velocity) (* bin (rad2deg 1)))
 		    (t 1)))
 	       mirror-bin))
     (etc-command (cond
@@ -157,9 +170,17 @@
      (send *viewer* :draw-objects)
      (x::window-main-one)))
    )
+  (:velocity-callback
+   (msg &key (draw? nil))
+   (send self :callback-org msg :command 'velocity)
+   )
   (:torque-callback
    (msg &key (draw? nil))
    (send self :callback-org msg :command 'torque)
+   )
+  (:velocity-callback
+   (msg &key (draw? nil))
+   (send self :callback-org msg :command 'temperature)
    )
   (:mode-callback
    (msg &key (draw? nil))
@@ -231,15 +252,18 @@
   )
 
 (defun aria-init
-  nil
-  (setq *ri* (instance aria-interface :init))
-  (setq *aria* (aria))
-  (setq *robot* *aria*)
+  (&key
+   (viewer? t))
+  (setq *ri* (or *ri* (instance aria-interface :init)))
+  (setq *aria* (or *aria* *robot* (aria)))
+  (setq *robot* (or *robot* *aria*))
   (send-all (send *robot* :joint-list) :min-angle -10000)
   (send-all (send *robot* :joint-list) :max-angle 10000)
-  (objects *robot*)
-  (send *irtviewer* :change-background #F(0.9 0.9 0.9))
-  (send *irtviewer* :draw-objects))
+  (cond
+   (viewer?
+    (objects *robot*)
+    (send *irtviewer* :change-background #F(0.9 0.9 0.9))
+    (send *irtviewer* :draw-objects))))
 
 (defun model2real
   nil
