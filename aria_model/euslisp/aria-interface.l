@@ -8,6 +8,10 @@
 
 ;;(ros::unsubscribe "/ros2http/socket_listener/reponse")
 
+(defvar *ri*)
+(defvar *aria*)
+(defvar *robot*)
+
 (defclass aria-interface
   :super object
   :slots (robot imu-coords joint-cnt
@@ -232,9 +236,9 @@
 
 (defun aria-init
   nil
-  (setq *ri* (instance aria-interface :init))
-  (setq *aria* (aria))
-  (setq *robot* *aria*)
+  (setq *ri* (or *ri* (instance aria-interface :init)))
+  (setq *aria* (or *aria* *robot* (aria)))
+  (setq *robot* (or *robot* *aria*))
   (send-all (send *robot* :joint-list) :min-angle -10000)
   (send-all (send *robot* :joint-list) :max-angle 10000)
   (objects *robot*)
