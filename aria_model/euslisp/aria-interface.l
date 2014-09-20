@@ -235,15 +235,18 @@
   )
 
 (defun aria-init
-  nil
+  (&key
+   (viewer? t))
   (setq *ri* (or *ri* (instance aria-interface :init)))
   (setq *aria* (or *aria* *robot* (aria)))
   (setq *robot* (or *robot* *aria*))
   (send-all (send *robot* :joint-list) :min-angle -10000)
   (send-all (send *robot* :joint-list) :max-angle 10000)
-  (objects *robot*)
-  (send *irtviewer* :change-background #F(0.9 0.9 0.9))
-  (send *irtviewer* :draw-objects))
+  (cond
+   (viewer?
+    (objects *robot*)
+    (send *irtviewer* :change-background #F(0.9 0.9 0.9))
+    (send *irtviewer* :draw-objects))))
 
 (defun model2real
   nil
