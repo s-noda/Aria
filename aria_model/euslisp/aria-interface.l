@@ -178,7 +178,7 @@
    (msg &key (draw? nil))
    (send self :callback-org msg :command 'torque)
    )
-  (:velocity-callback
+  (:temperature-callback
    (msg &key (draw? nil))
    (send self :callback-org msg :command 'temperature)
    )
