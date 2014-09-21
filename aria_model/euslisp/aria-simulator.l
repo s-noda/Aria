@@ -1,10 +1,10 @@
 #!/usr/bin/env roseus
 
+(format t "~%~%[aria-simulator]~%")
 (require "package://aria_model/euslisp/aria-interface.l")
 (require "package://aria_model/euslisp/torque-util.l")
 
 (aria-init :viewer? nil)
-
 (ros::advertise "/aria_simulator/start/position/rarm"
 		std_msgs::float32multiarray)
 (ros::advertise "/aria_simulator/end/position/rarm"
@@ -31,14 +31,16 @@
 (defvar *velocity-buf* (list (get-vector :command 'velocity)))
 
 (defvar *sim-timer*)
-(defvar *sim-time-step* 0.1)
+(defvar *sim-time-step* 0.033)
 
 (ros::rate (round (/ 1 *sim-time-step*)))
+(format t "   start !!~%")
 (do-until-key
  (ros::sleep)
  (let* ((pb *position-buf*)
 	(tb *torque-buf*)
 	(vb *velocity-buf*)
+	err
 	q)
    (setq
     q
@@ -46,11 +48,12 @@
      :robot *robot*
      :all-links *all-links*
      :q (car (last *position-buf*))
-     :dq (car (last *velocity-buf*))
+     :dq (map float-vector #'deg2rad
+	      (car (last *velocity-buf*)))
      :tau (reverse *torque-buf*)
      :animate? nil
      :sim-time-step *sim-time-step*
-     :sim-time-max 1.0
+     :sim-time-max 0.33
      :init
      (progn
        (setq *position-buf* nil)
@@ -84,5 +87,12 @@
 			   :data q))
    (ros::publish "/aria_simulator/predict/position/error/rarm"
 		 (instance std_msgs::float32multiarray :init
-			   :data (v- q (car pb))))
+			   :data (setq err (v- q (car pb)))))
+   (map cons
+	#'(lambda (err name thre)
+	    (if (> (abs err) thre)
+		(format t "  [~A] ~A > ~A~%" name err thre)))
+	err
+	(list :rarm-wrist-p :rarm-wrist-y :rarm-elbow-p :rarm-elbow-y :rarm-shoulder-r :rarm-shoulder-p :rarm-shoulder-y)
+	'(15 5 5 5 3 3 3))
    ))
