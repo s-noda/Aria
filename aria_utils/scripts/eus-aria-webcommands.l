@@ -111,6 +111,13 @@
       (format nil "array size must be ~A" *joint-size*))))
 
 ;; send torque functions
+(defun send-zero ()
+  (let (msg)
+    (setq msg (instance std_msgs::String :init))
+    (send msg :data (format nil "{~A:~A,~A:[0],~A:\"1\"}" "\"method\"" "\"sendZero\"" "\"params\"" "\"id\""))
+    (ros::publish "/ros2http/socket_listener/json_string" msg))) 
+  
+
 (defun set-torque (joint torque)
   (let (res mode-msg torque-msg)
     (setq res (make-array 2))
