@@ -8,7 +8,7 @@
   (if (string-equal (send msg :data) "y")
       (setq stat 1)))
 
-(ros::subscribe "/euslisp/keyboard" std_msgs::String #'keyboard-callback)
+(ros::subscribe "/aria/commandline" std_msgs::String #'keyboard-callback)
 
 ;; main
 

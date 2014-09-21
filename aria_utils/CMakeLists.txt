@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(utils)
+project(aria_utils)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+  sensor_msgs
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -88,7 +92,9 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
 
 ## Declare a cpp library
 # add_library(utils
@@ -96,16 +102,19 @@ catkin_package(
 # )
 
 ## Declare a cpp executable
-# add_executable(utils_node src/utils_node.cpp)
+add_executable(interpolation_wrapper src/interpolation_wrapper.cc)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(utils_node utils_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(utils_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(interpolation_wrapper
+  ${catkin_LIBRARIES}
+)
+
+install(TARGETS interpolation_wrapper
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #############
 ## Install ##

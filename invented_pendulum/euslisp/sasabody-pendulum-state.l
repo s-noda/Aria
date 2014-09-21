@@ -41,8 +41,8 @@
 	 )
     (setf (aref *state-vector* 1) (calc-tilt mat))
     (setf (aref *state-vector* 3)
-	  (+ (* -0.9 (send (send msg :angular_velocity) :y))
-	     (* 0.1 (aref *state-vector* 3))))
+	  (+ (* -0.5 (send (send msg :angular_velocity) :y))
+	     (* 0.0 (aref *state-vector* 3))))
     (if *imu-timer*
 	(setq *imu-vel*
 	      (+ (aref *state-vector* 2)
