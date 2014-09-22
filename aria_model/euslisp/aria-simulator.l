@@ -4,7 +4,7 @@
 (require "package://aria_model/euslisp/aria-interface.l")
 (require "package://aria_model/euslisp/torque-util.l")
 
-(aria-init :viewer? nil)
+(aria-init :viewer? t)
 (ros::advertise "/aria_simulator/start/position/rarm"
 		std_msgs::float32multiarray)
 (ros::advertise "/aria_simulator/end/position/rarm"
@@ -32,6 +32,13 @@
 
 (defvar *sim-timer*)
 (defvar *sim-time-step* 0.033)
+(defvar *viewer*)
+
+(cond
+ (*viewer*
+  (objects (list *robot* (send *ri* :get-val 'robot)))
+  (send *irtviewer* :change-background #F(0.8 0.8 1.0))
+  (send *irtviewer* :title "FDynamics SIMULATOR")))
 
 (ros::rate (round (/ 1 *sim-time-step*)))
 (format t "   start !!~%")
@@ -42,6 +49,7 @@
 	(vb *velocity-buf*)
 	err
 	q)
+   (send *robot* :angle-vector (send *ri* :state :potentio-vector))
    (setq
     q
     (debug-calc-ddq-coeff-matrix-simulation
@@ -88,11 +96,18 @@
    (ros::publish "/aria_simulator/predict/position/error/rarm"
 		 (instance std_msgs::float32multiarray :init
 			   :data (setq err (v- q (car pb)))))
+   (and *viewer* (send *viewer* :draw-objects :flush nil))
    (map cons
-	#'(lambda (err name thre)
-	    (if (> (abs err) thre)
-		(format t "  [~A] ~A > ~A~%" name err thre)))
+	#'(lambda (err name thre link)
+	    (cond
+	     ((> (abs err) thre)
+	      (and *viewer*
+		   (send link :draw-on :color #F(1 0 0) :flush nil))
+	      (format t "  [~A] ~A > ~A~%" name err thre))))
 	err
 	(list :rarm-wrist-p :rarm-wrist-y :rarm-elbow-p :rarm-elbow-y :rarm-shoulder-r :rarm-shoulder-p :rarm-shoulder-y)
-	'(15 5 5 5 3 3 3))
+	'(15 5 5 5 3 3 3)
+	*all-links*)
+   (and *viewer* (send *viewer* :viewsurface :flush))
+   (and *viewer* (x::window-main-one))
    ))

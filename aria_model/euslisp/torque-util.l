@@ -226,44 +226,48 @@
    (animate-timer (if animate? (instance mtimer :init)))
    ;;
    callback
+   ;; last-callback
    )
   (do-until-key
-   (if(> (setq sim-time-buf (+ sim-time-buf sim-time-step))
-	 sim-time-max) (return-from nil nil))
-    (calc-ddq-coeff-matrix
-     :robot robot :q q :dq dq :all-links all-links
-     :root-spacial-velocity root-spacial-velocity
-     :root-angular-velocity root-angular-velocity
-     :ddq-coeff ddq-coeff :b b :base-torque? base-torque?)
-    ;; (print (calc-eigen-determinant ddq-coeff))
-    (setq ddq# (inverse-matrix ddq-coeff))
-    ;; (calc-eigen-inverse ddq-coeff))
-    (if ddq#
-	(setq ddq
-	      (transform
-	       ddq#
-	       (v- (v- (v- (or (pop tau) tau0) b)
-		       (transform friction-matrix dq))
-		   (transform inertia-matrix ddq)))))
-    (setq dq (map float-vector
-		  #'(lambda (v) (min max-vel (max min-vel v)))
-		  (v+ dq (scale sim-time-step ddq))))
-    (setq q (v+ q (scale (rad2deg sim-time-step) dq)))
-    ;; (format t "  (~A)  ddq=~A~%" sim-time-buf ddq)
-    (cond
-     ((and animate? (minusp (decf animate-cnt)))
-      (setq animate-cnt
-	    (round (/ animate-time-step sim-time-step)))
-      (format t " time = ~A x~A~%"
-	      sim-time-buf
-	      (/ animate-time-step (send animate-timer :stop)))
-      (send animate-timer :start)
-      (x::window-main-one)
-      (if (and (boundp '*viewer*) *viewer*)
-	  (send *viewer* :draw-objects))
-      ))
-    (if (functionp callback) (funcall callback sim-time-buf))
-    )
+   (cond
+    ((> (setq sim-time-buf (+ sim-time-buf sim-time-step))
+	sim-time-max)
+     ;; (if (functionp 'last-callback) (funcall last-callback))
+     (return-from nil nil)))
+   (calc-ddq-coeff-matrix
+    :robot robot :q q :dq dq :all-links all-links
+    :root-spacial-velocity root-spacial-velocity
+    :root-angular-velocity root-angular-velocity
+    :ddq-coeff ddq-coeff :b b :base-torque? base-torque?)
+   ;; (print (calc-eigen-determinant ddq-coeff))
+   (setq ddq# (inverse-matrix ddq-coeff))
+   ;; (calc-eigen-inverse ddq-coeff))
+   (if ddq#
+       (setq ddq
+	     (transform
+	      ddq#
+	      (v- (v- (v- (or (pop tau) tau0) b)
+		      (transform friction-matrix dq))
+		  (transform inertia-matrix ddq)))))
+   (setq dq (map float-vector
+		 #'(lambda (v) (min max-vel (max min-vel v)))
+		 (v+ dq (scale sim-time-step ddq))))
+   (setq q (v+ q (scale (rad2deg sim-time-step) dq)))
+   ;; (format t "  (~A)  ddq=~A~%" sim-time-buf ddq)
+   (cond
+    ((and animate? (minusp (decf animate-cnt)))
+     (setq animate-cnt
+	   (round (/ animate-time-step sim-time-step)))
+     (format t " time = ~A x~A~%"
+	     sim-time-buf
+	     (/ animate-time-step (send animate-timer :stop)))
+     (send animate-timer :start)
+     (x::window-main-one)
+     (if (and (boundp '*viewer*) *viewer*)
+	 (send *viewer* :draw-objects))
+     ))
+   (if (functionp callback) (funcall callback sim-time-buf))
+   )
   q
   )
 
