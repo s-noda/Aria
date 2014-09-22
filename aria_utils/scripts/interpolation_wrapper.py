@@ -21,54 +21,72 @@ class Interpolator:
     position_goal = [0.0]*currentor.joint_size
     position_end = [0.0]*currentor.joint_size
     position_delta = [0.0]*currentor.joint_size
+    pid_initial = [{'p':0.0, 'i':0.0, 'd':0.0}]*currentor.joint_size
+    pid_get = [{'p':0.0, 'i':0.0, 'd':0.0}]*currentor.joint_size
+    pid_start = [{'p':0.0, 'i':0.0, 'd':0.0}]*currentor.joint_size
+    pid_goal = [{'p':0.0, 'i':0.0, 'd':0.0}]*currentor.joint_size
+    pid_end = [{'p':0.0, 'i':0.0, 'd':0.0}]*currentor.joint_size
+    pid_delta = [{'p':0.0, 'i':0.0, 'd':0.0}]*currentor.joint_size
     counter = [0]*currentor.joint_size
     count_finish = [0]*currentor.joint_size
-    set_interpolation = {}
     interpolate_joint = {}
     def __init__(self):
-        self.set_interpolation['interpolateConstant'] = self.set_constant
-        self.set_interpolation['interpolateTLinear'] = self.set_torque_linear
-        self.set_interpolation['interpolatePLinear'] = self.set_position_linear
         self.interpolate_joint['interpolateConstant'] = self.interpolate_constant
         self.interpolate_joint['interpolateTLinear'] = self.interpolate_torque_linear
         self.interpolate_joint['interpolatePLinear'] = self.interpolate_position_linear
+        self.interpolate_joint['interpolatePIDLinear'] = self.interpolate_pid_linear
+        id_map = rospy.get_param("/id_map")
+        pid_gain = rospy.get_param("/pid_gain")
+        for key in id_map:
+            self.pid_initial[id_map[key]] = pid_gain[key]
+            self.pid_get[id_map[key]] = pid_gain[key]
         return
     def interpolate_joints(self):
         for joint in range(0, currentor.joint_size):
             self.interpolate_joint[self.interpolate_type[joint]](joint)
-    def set_constant(self, joint):
-        return
-    def set_torque_linear(self, joint):
-        rospy.loginfo('set torque %d' % (joint))
+    def set_counter(self, joint):
         self.count_finish[joint] = self.goal_time[joint] * self.rate
         if self.count_finish[joint] == 0:
             self.count_finish[joint] = 1
-        self.torque_delta[joint] = (self.torque_end[joint] - self.torque_start[joint]) / self.count_finish[joint]
-    def set_position_linear(self, joint):
-        self.count_finish[joint] = self.goal_time[joint] * self.rate
-        if self.count_finish[joint] == 0:
-            self.count_finish[joint] = 1
-        self.position_delta[joint] = (self.position_end[joint] - self.position_start[joint]) / self.count_finish[joint]
+        self.counter[joint] += 1
+    def finish_interpolation(self, joint):
+        self.counter[joint] = 10000
+        self.interpolate_type[joint] = 'interpolateConstant'
     def interpolate_constant(self, joint):
         self.torque_goal[joint] = self.torque_get[joint]
         self.position_goal[joint] = self.position_get[joint]
     def interpolate_torque_linear(self, joint):
-        rospy.loginfo('interpolate %d' % (joint))
-        if self.counter[joint] >= self.count_finish[joint]:
+        if self.counter[joint] == 0:
+            self.set_counter(joint)
+            self.torque_delta[joint] = (self.torque_end[joint] - self.torque_start[joint]) / self.count_finish[joint]
+        elif self.counter[joint] >= self.count_finish[joint]:
             self.torque_delta[joint] = 0
-            self.counter[joint] = 0
-            self.interpolate_type[joint] = 'interpolateConstant'
+            self.finish_interpolation(joint)
         else:
             self.torque_goal[joint] += self.torque_delta[joint]
             self.counter[joint] += 1
     def interpolate_position_linear(self, joint):
-        if self.counter[joint] >= self.count_finish[joint]:
+        if self.counter[joint] == 0:
+            self.set_counter(joint)
+            self.position_delta[joint] = (self.position_end[joint] - self.position_start[joint]) / self.count_finish[joint]
+        elif self.counter[joint] >= self.count_finish[joint]:
             self.position_delta[joint] = 0
-            self.counter[joint] = 0
-            self.interpolate_type[joint] = 'interpolateConstant'
+            self.finish_interpolation(joint)
         else:
             self.position_goal[joint] += self.position_delta[joint]
             self.counter[joint] += 1
+    def interpolate_pid_linear(self, joint):
+        if self.counter[joint] == 0:
+            self.set_counter(joint)
+            self.pid_delta[joint] = {'p': (self.pid_end[joint]['p'] - self.position_start[joint]['p']) / self.count_finish[joint]['p'], 'd': (self.pid_end[joint]['d'] - self.position_start[joint]['d']) / self.count_finish[joint]['d'], 'i': (self.pid_end[joint]['i'] - self.position_start[joint]['i']) / self.count_finish[joint]['i']}
+        elif self.counter[joint] >= self.count_finish[joint]:
+            self.pid_delta[joint] = {'p':0.0, 'i':0.0, 'd':0.0}
+            self.pid_get[joint] = self.pid_goal[joint]
+            self.finish_interpolation(joint)
+        else:
+            self.pid_goal[joint] = {'p': (self.pid_goal[joint]['p'] + self.pid_delta[joint]['p']), 'i': (self.pid_goal[joint]['i'] + self.pid_delta[joint]['i']), 'd': (self.pid_goal[joint]['d'] + self.pid_delta[joint]['d'])}
+            self.counter[joint] += 1
+            
 
 __interpolator__ = Interpolator()
 
@@ -88,8 +106,6 @@ def goal_torques_callback(data):
         __interpolator__.torque_goal[joint] = __interpolator__.torque_start[joint]
         __interpolator__.torque_end[joint] = data.data[joint]
         __interpolator__.counter[joint] = 0
-        rospy.loginfo(__interpolator__.interpolate_type[joint])
-        __interpolator__.set_interpolation[__interpolator__.interpolate_type[joint]](joint)
 
 def goal_positions_callback(data):
     global __interpolator__
@@ -99,7 +115,6 @@ def goal_positions_callback(data):
         __interpolator__.position_goal[joint] = __interpolator__.position_start[joint]
         __interpolator__.position_end[joint] = data.data[joint]
         __interpolator__.counter[joint] = 0
-        __interpolator__.set_interpolation[__interpolator__.interpolate_type[joint]](joint)
 
 def json_callback(data):
     global __interpolator__
@@ -122,19 +137,32 @@ def json_callback(data):
         __interpolator__.position_goal[joint] = __interpolator__.position_start[joint]
         __interpolator__.position_end[joint] = data_params[1]
         __interpolator__.counter[joint] = 0
-        __interpolator__.set_interpolation[__interpolator__.interpolate_type[joint]](joint)
         currentor.set_control_mode(joint, currentor.mode_pos)
+    if data_decode['method'] == 'setTorque':
+        joint = data_params[0]
+        __interpolator__.torque_start[joint] = __interpolator__.torque_get[joint]
+        __interpolator__.torque_goal[joint] = __interpolator__.torque_start[joint]
+        __interpolator__.torque_end[joint] = data_params[1]
+        __interpolator__.counter[joint] = 0
+        currentor.set_control_mode(joint, currentor.mode_pos)
+    if data_decode['method'] == 'setPIDGain':
+        joint = data_params[0]
+        __interpolator__.pid_start[joint] = {'p': __interpolator__.pid_get[joint]['p'], 'i': __interpolator__.pid_get[joint]['i'], 'd': __interpolator__.pid_get[joint]['d']}
+        __interpolator__.pid_goal[joint] = {'p': __interpolator__.pid_start[joint]['p'], 'i': __interpolator__.pid_start[joint]['i'], 'd': __interpolator__.pid_start[joint]['d']}
+        __interpolator__.pid_end[joint] = {'p': data_params[1], 'i': data_params[2], 'd': data_params[3]}
+        currentor.set_control_mode(joint, currentor.mode_pos)
+
+
 
 
 if __name__ == '__main__':
     rospy.init_node('util_conversions', anonymous=True)
-#    rospy.Subscriber('/currentor_socket/sensor_array/torque', Float32MultiArray, sensor_torque_callback)
+    rospy.Subscriber('/currentor_socket/sensor_array/torque', Float32MultiArray, sensor_torque_callback)
     rospy.Subscriber('/currentor_socket/sensor_array/position', Float32MultiArray, sensor_position_callback)
     rospy.Subscriber('/interpolation_wrapper/request/torque_vector', Float32MultiArray, goal_torques_callback)
     rospy.Subscriber('/interpolation_wrapper/request/position_vector', Float32MultiArray, goal_positions_callback)
     rospy.Subscriber('/interpolation_wrapper/socket_listener/json_string', String, json_callback)
     r = rospy.Rate(__interpolator__.rate)
-    __interpolator__.torque_get = [0.0, 1.0, 2.0, 1.5, 0.0, -1.0, -2.0, -1.5, 0.0, 0.0, 0.0, 1.0, -1.0, -1.0, -1.0, 2.0, 2.0, 2.0, 0.5, 0.5, -0.5, 0.7, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] 
     try:
         while not rospy.is_shutdown():
             __interpolator__.interpolate_joints()

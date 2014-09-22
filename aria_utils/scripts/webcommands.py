@@ -10,6 +10,7 @@ mode_tor = 1
 mode_pos = 2
 
 json_string_topic_name = '/ros2http/socket_listener/json_string'
+pid_string_topic_name = '/ros2http/socket_listener/json_string'
 mode_vector_topic_name = '/currentor_socket/request/mode_vector'
 torque_vector_topic_name = '/currentor_socket/request/torque_vector'
 position_vector_topic_name = '/currentor_socket/request/position_vector'
@@ -61,7 +62,7 @@ def set_positions(data):
 def set_pid_gain(joint, p, i, d):
     msg = String()
     msg.data = '{\"method\":\"setPIDGain\",\"params\":\"[%d,%f,%f,%f]\",\"id\":\"1\"}' % (joint, p, i, d)
-    pub = rospy.Publisher('/ros2http/socket_listener/json_string', String)
+    pub = rospy.Publisher(pid_string_topic_name, String)
     pub.publish(msg)
 
 def set_interpolate(joint, interpolation_type, time):
@@ -75,6 +76,19 @@ def set_interpolates(interpolation_type, time):
     msg.data = '{\"method\":\"%s\",\"params\":\"[0,%f]\",\"id\":\"0\"}' % (interpolation_type, time)
     pub = rospy.Publisher('/interpolation_wrapper/socket_listener/json_string', String)
     pub.publish(msg)
+
+def original_mode():
+    json_string_topic_name = '/ros2http/socket_listener/json_string'
+    pid_string_topic_name = '/ros2http/socket_listener/json_string'
+    mode_vector_topic_name = '/currentor_socket/request/mode_vector'
+    torque_vector_topic_name = '/currentor_socket/request/torque_vector'
+    position_vector_topic_name = '/currentor_socket/request/position_vector'
+
+def interpolate_mode():
+    json_string_topic_name = '/interpolation_wrapper/socket_listener/json_string'
+    pid_string_topic_name = '/ros2http/socket_listener/json_string'
+    torque_vector_topic_name = '/interpolation_wrapper/request/torque_vector'
+    position_vector_topic_name = '/interpolation_wrapper/request/position_vector'
 
 if __name__ == '__main__':
     rospy.init_node('python_webcommands')
