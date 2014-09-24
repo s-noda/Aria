@@ -16,6 +16,7 @@ public class CurrentorSocketNode extends SocketListener {
 	final private static int NOP=0, TRQ=1, POS=2, MOD=3;
 	private int mode ;
 	private float[] requested_data ;
+    private long last_request_time;
 	
 	@Override
 	public GraphName getDefaultNodeName() {
@@ -27,6 +28,7 @@ public class CurrentorSocketNode extends SocketListener {
 		super.onStart(connectedNode);
 		
 		this.mode = CurrentorSocketNode.NOP ;
+		this.last_request_time = System.currentTimeMillis();
 		
 		this.sensor_pub = new Publisher[CurrentorUtil.sensor_names.length];
 		int id = 0 ;
@@ -43,8 +45,10 @@ public class CurrentorSocketNode extends SocketListener {
 			@Override
 			public void onNewMessage(std_msgs.Float32MultiArray arg) {
 			    synchronized(CurrentorSocketNode.this){
+				System.out.println(" -- torque command received " + (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time) + "ms");
 				CurrentorSocketNode.this.mode = CurrentorSocketNode.TRQ;
 				CurrentorSocketNode.this.requested_data = arg.getData() ;
+				CurrentorSocketNode.this.last_request_time = System.currentTimeMillis();
 			    }
 			}
 		}, 1) ;
@@ -55,8 +59,10 @@ public class CurrentorSocketNode extends SocketListener {
 			@Override
 			public void onNewMessage(std_msgs.Float32MultiArray arg) {
 			    synchronized(CurrentorSocketNode.this){
+				System.out.println(" -- position command received " + (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time) + "ms");
 				CurrentorSocketNode.this.mode = CurrentorSocketNode.POS;
 				CurrentorSocketNode.this.requested_data = arg.getData() ;
+				CurrentorSocketNode.this.last_request_time = System.currentTimeMillis();
 			    }
 			}
 		}, 1) ;
@@ -67,8 +73,10 @@ public class CurrentorSocketNode extends SocketListener {
 			@Override
 			public void onNewMessage(std_msgs.Float32MultiArray arg) {
 			    synchronized(CurrentorSocketNode.this){
+				System.out.println(" -- mode command received " + (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time) + "ms");
 				CurrentorSocketNode.this.mode = CurrentorSocketNode.MOD;
 				CurrentorSocketNode.this.requested_data = arg.getData() ;
+				CurrentorSocketNode.this.last_request_time = System.currentTimeMillis();
 			    }
 			}
 		}, 1) ;
@@ -96,6 +104,7 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- Torque command rejected/");
 						    }
 						    res = CurrentorSocketNode.this.postConnection(command);
+						    // System.out.println(res);
 						    // ros_res.setData(res);
 						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
 						    break;
@@ -118,6 +127,7 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- Mode command rejected/");
 						    }
 						    res = CurrentorSocketNode.this.postConnection(command);
+						    // System.out.println(res);
 						    // ros_res.setData(res);
 						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
 						    break;
@@ -141,10 +151,10 @@ public class CurrentorSocketNode extends SocketListener {
 					}
 				}
 				long now = System.currentTimeMillis() ;
-				System.out.println(" --- time: " + (now - this.last_time) + "[ms]") ;
+				// System.out.println(" --- time: " + (now - this.last_time) + "[ms]") ;
 				if ( step > now - this.last_time ){
 					Thread.sleep( step - ( now - this.last_time ) ) ;
-					System.out.println(" --- sleep: " + (step- ( now - this.last_time )) + "[ms]") ;
+					// System.out.println(" --- sleep: " + (step- ( now - this.last_time )) + "[ms]") ;
 				} else {
 					System.out.println(" --- overslept...") ;
 				}
@@ -226,11 +236,10 @@ public class CurrentorSocketNode extends SocketListener {
 					break ;
 				}
 			}
-			if ( i >= split.length ){
+			if ( i >= split.length || (json = split[i].trim()).length() < 2 ){
 				System.out.println("[decodeJsonCommand] result missing in " + json) ;
 				return ;
 			}
-			json = split[i].trim();
 			json = json.substring(1,json.length()-1);
 			CurrentorUtil.decodeSensorValueString(json) ;
 		}
