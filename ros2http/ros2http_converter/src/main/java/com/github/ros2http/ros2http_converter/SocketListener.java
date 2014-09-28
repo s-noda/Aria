@@ -12,6 +12,7 @@ import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.ConnectedNode;
 import org.ros.node.Node;
+import org.ros.node.parameter.ParameterTree;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
@@ -27,7 +28,7 @@ public class SocketListener extends HttpListener {
 	protected OutputStream writer ;
 	protected InputStream reader ;
 	
-	protected Publisher<std_msgs.String> response_pub;
+	private Publisher<std_msgs.String> response_pub;
 	
 	@Override
 	public GraphName getDefaultNodeName() {
@@ -36,6 +37,13 @@ public class SocketListener extends HttpListener {
 
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
+		
+		ParameterTree params = connectedNode.getParameterTree();
+		if ( params.getInteger("ARIA_SOCKET_PORT", -1) > 0 ){
+			this.portno = params.getInteger("ARIA_SOCKET_PORT", -1);
+			System.out.println("ARIA_SOCKET_PORT="+this.portno);			
+		}
+		
 		this.response_pub =
 		        connectedNode.newPublisher("ros2http/socket_listener/reponse", std_msgs.String._TYPE);
 		

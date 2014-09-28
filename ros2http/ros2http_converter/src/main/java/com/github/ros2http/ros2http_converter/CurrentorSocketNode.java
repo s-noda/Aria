@@ -12,8 +12,9 @@ public class CurrentorSocketNode extends SocketListener {
 	private final static String nodename = "currentor_socket";
 	private Publisher<std_msgs.Float32MultiArray>[] sensor_pub ;
 	private Publisher<std_msgs.String> sensor_name_pub ;	
+	private Publisher<std_msgs.String> currentor_socket_status ;	
 	
-	final private static int NOP=0, TRQ=1, POS=2, MOD=3;
+	final private static int NOP=0, TRQ=1, POS=2, MOD=3, TMAX=4, TMIN=5;
 	private int mode ;
 	private float[] requested_data ;
 	
@@ -24,7 +25,7 @@ public class CurrentorSocketNode extends SocketListener {
 
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-		super.onStart(connectedNode);
+		//super.onStart(connectedNode);
 		
 		this.mode = CurrentorSocketNode.NOP ;
 		
@@ -36,6 +37,7 @@ public class CurrentorSocketNode extends SocketListener {
 		}
 		
 		this.sensor_name_pub = connectedNode.newPublisher(CurrentorSocketNode.nodename + "/sensor_array/names", std_msgs.String._TYPE);
+		this.currentor_socket_status = connectedNode.newPublisher(CurrentorSocketNode.nodename + "/status", std_msgs.String._TYPE);
 		
 		Subscriber<std_msgs.Float32MultiArray> trq_sub = connectedNode.newSubscriber(
 				CurrentorSocketNode.nodename + "/request/torque_vector", std_msgs.Float32MultiArray._TYPE);
@@ -72,12 +74,36 @@ public class CurrentorSocketNode extends SocketListener {
 			    }
 			}
 		}, 1) ;
+
+		Subscriber<std_msgs.Float32MultiArray> tmax_sub = connectedNode.newSubscriber(
+				CurrentorSocketNode.nodename + "/request/torque_max_vector", std_msgs.Float32MultiArray._TYPE);
+		tmax_sub.addMessageListener(new MessageListener<std_msgs.Float32MultiArray>(){
+			@Override
+			public void onNewMessage(std_msgs.Float32MultiArray arg) {
+			    synchronized(CurrentorSocketNode.this){
+				CurrentorSocketNode.this.mode = CurrentorSocketNode.TMAX;
+				CurrentorSocketNode.this.requested_data = arg.getData() ;
+			    }
+			}
+		}, 1) ;
+
+		Subscriber<std_msgs.Float32MultiArray> tmin_sub = connectedNode.newSubscriber(
+				CurrentorSocketNode.nodename + "/request/torque_min_vector", std_msgs.Float32MultiArray._TYPE);
+		tmin_sub.addMessageListener(new MessageListener<std_msgs.Float32MultiArray>(){
+			@Override
+			public void onNewMessage(std_msgs.Float32MultiArray arg) {
+			    synchronized(CurrentorSocketNode.this){
+				CurrentorSocketNode.this.mode = CurrentorSocketNode.TMIN;
+				CurrentorSocketNode.this.requested_data = arg.getData() ;
+			    }
+			}
+		}, 1) ;
 		
 		connectedNode.executeCancellableLoop( new CancellableLoop(){
 			private long last_time = System.currentTimeMillis();
 			private long step = 10 ;
 			private String default_command = CurrentorUtil.encodeJsonCommand("getValues");
-			private std_msgs.String ros_res = CurrentorSocketNode.this.response_pub.newMessage();
+			//private std_msgs.String ros_res = CurrentorSocketNode.this.response_pub.newMessage();
 			@Override
 			protected void loop() throws InterruptedException {
 				synchronized(CurrentorSocketNode.this){
@@ -96,8 +122,6 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- Torque command rejected/");
 						    }
 						    res = CurrentorSocketNode.this.postConnection(command);
-						    // ros_res.setData(res);
-						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
 						    break;
 						case CurrentorSocketNode.POS:
 						    command = CurrentorUtil.encodeJsonCommand("setPositions",
@@ -107,8 +131,6 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- Position command rejected/");
 						    }
 						    res = CurrentorSocketNode.this.postConnection(command);
-						    // ros_res.setData(res);
-						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
 						    break;
 						case CurrentorSocketNode.MOD:
 						    command = CurrentorUtil.encodeJsonCommand("setControlModes",
@@ -118,26 +140,51 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- Mode command rejected/");
 						    }
 						    res = CurrentorSocketNode.this.postConnection(command);
-						    // ros_res.setData(res);
-						    // CurrentorSocketNode.this.response_pub.publish(ros_res);
 						    break;
+						case CurrentorSocketNode.TMAX:
+							command = CurrentorUtil.encodeJsonCommand("setMaxLimit",
+								     CurrentorSocketNode.this.requested_data);
+							if (command == null) {
+								command = this.default_command;
+								System.out
+										.println(" -- TMAX command rejected/");
+							}
+							res = CurrentorSocketNode.this.postConnection(command);
+							break;
+						case CurrentorSocketNode.TMIN:		
+							command = CurrentorUtil.encodeJsonCommand("setMinLimit",
+								     CurrentorSocketNode.this.requested_data);
+							if (command == null) {
+								command = this.default_command;
+								System.out
+										.println(" -- TMIN command rejected/");
+							}
+							res = CurrentorSocketNode.this.postConnection(command);
+							break;
 						case CurrentorSocketNode.NOP:
 						default:
 						    res = CurrentorSocketNode.this.postConnection(this.default_command);
-						    //ros_res.setData(res);
-						    //CurrentorSocketNode.this.response_pub.publish(ros_res);
 						    break;
 						}
 						CurrentorSocketNode.this.mode = CurrentorSocketNode.NOP;
 						//
-						CurrentorUtil.decodeJsonCommand(res);
+						if ( CurrentorUtil.decodeJsonCommand(res) ){
+							std_msgs.String ros_res = CurrentorSocketNode.this.currentor_socket_status.newMessage();
+							ros_res.setData("connection refused: "
+									+ CurrentorSocketNode.this.hostname + ":"
+									+ CurrentorSocketNode.this.portno);
+							CurrentorSocketNode.this.currentor_socket_status.publish(ros_res);
+						}
 						CurrentorSocketNode.this.publishSensors();
 					} else {
-						std_msgs.String ros_res = CurrentorSocketNode.this.response_pub.newMessage();
-						ros_res.setData("connection refused: "
+						System.out.println("connection refused: "
 								+ CurrentorSocketNode.this.hostname + ":"
 								+ CurrentorSocketNode.this.portno);
-						CurrentorSocketNode.this.response_pub.publish(ros_res);
+						//std_msgs.String ros_res = CurrentorSocketNode.this.response_pub.newMessage();
+						//ros_res.setData("connection refused: "
+						//		+ CurrentorSocketNode.this.hostname + ":"
+						//		+ CurrentorSocketNode.this.portno);
+						//CurrentorSocketNode.this.response_pub.publish(ros_res);
 					}
 				}
 				long now = System.currentTimeMillis() ;
@@ -177,18 +224,19 @@ public class CurrentorSocketNode extends SocketListener {
 		sensor_values[sensor_names.length-1] = new float[6];
 	    }
 		
-		public static void decodeSensorValueString(String in){
+		public static boolean decodeSensorValueString(String in){
 			if ( in.length() != CurrentorUtil.byte_buf.length*2 ){
 				System.out
 						.println("[decodeSensorValueString] invalid input string " + in + " length "
 								+ in.length()
 								+ " vs "
 								+ CurrentorUtil.byte_buf.length*2);
-				return ;
+				return false;
 				//in = in.substring(0,CurrentorUtil.byte_buf.length*2);
 			}
 			FloatString.xstring2barray(in, CurrentorUtil.byte_buf);
 			FloatString.barray2farray(CurrentorUtil.byte_buf, CurrentorUtil.sensor_values, sensor_names.length-1);
+			return true;
 		}
 		
 		public static String encodeFloatString(float[] in){
@@ -217,7 +265,7 @@ public class CurrentorSocketNode extends SocketListener {
 		    }
 		}
 		
-		public static void decodeJsonCommand(String json){
+		public static boolean decodeJsonCommand(String json){
 			String[] split = json.split(":|,");
 			int i = 0 ;
 			for ( String str : split ){
@@ -228,11 +276,11 @@ public class CurrentorSocketNode extends SocketListener {
 			}
 			if ( i >= split.length ){
 				System.out.println("[decodeJsonCommand] result missing in " + json) ;
-				return ;
+				return false;
 			}
 			json = split[i].trim();
 			json = json.substring(1,json.length()-1);
-			CurrentorUtil.decodeSensorValueString(json) ;
+			return CurrentorUtil.decodeSensorValueString(json) ;
 		}
 		
 	}
