@@ -108,6 +108,10 @@
 		   std_msgs::float32multiarray)
    (ros::advertise "/currentor_socket/request/torque_vector"
 		   std_msgs::float32multiarray)
+   (ros::advertise "/currentor_socket/request/torque_max_vector"
+		   std_msgs::float32multiarray)
+   (ros::advertise "/currentor_socket/request/torque_min_vector"
+		   std_msgs::float32multiarray)
    (ros::advertise "/aria_interpolator/position"
 		   std_msgs::string)
    )
@@ -219,6 +223,8 @@
 	       #'(lambda (bin)
 		   (cond
 		    ((eq command 'torque) (* bin -9.8))
+		    ((eq command 'torque_max) (* bin -9.8))
+		    ((eq command 'torque_min) (* bin -9.8))
 		    ((eq command 'position) (* bin (deg2rad 1)))
 		    (t 1)))
 	       mirror-bin))
@@ -235,6 +241,10 @@
 		 (instance std_msgs::float32multiarray
 			   :init
 			   :data joint-vector)))
+  (:mirror-bin
+   nil
+   (map cons #'(lambda (j b) (send j :put :bin b)) joint-list mirror-bin)
+   (mapcar #'(lambda (j) (or (send j :get :bin) 0)) (send robot :joint-list)))
   (:_angle-vector
    (&optional (vector (send robot :angle-vector)))
    (send self :send-vector vector 'position))
@@ -247,6 +257,12 @@
   (:torque-vector
    (&optional (vector (send robot :torque-vector)))
    (send self :send-vector vector 'torque))
+  (:torque-max-vector
+   (&optional (vector (send robot :torque-vector)))
+   (send self :send-vector vector 'torque_max))
+  (:torque-min-vector
+   (&optional (vector (send robot :torque-vector)))
+   (send self :send-vector vector 'torque_min))
   (:mode-vector
    (&optional (vector (scale 0 (send robot :angle-vector))))
    (send self :send-vector vector 'mode))
@@ -281,12 +297,17 @@
   )
 
 (defun cancel-gravity
-  (&key (hz 50) (send-torque? t))
+  (&key (hz 50)
+	(send-torque? t)
+	(torque-limit?))
+  (if (and torque-limit? (not (numberp torque-limit?)))
+      (setq torque-limit? 0.3))
   (ros::rate hz)
   (let ((time-step (/ 1.0 hz))
 	(cnt 0)
 	(pub-cnt 0)
 	(time 0)
+	tv
 	)
     (do-until-key
      (setq
@@ -306,14 +327,43 @@
 	 ;;(send *viewer* :viewsurface :flush)
 	 (send *viewer* :draw-objects)
 	 (x::window-main-one)
-	 (if (and send-torque? (send *ri* :get-val 'position-updated))
-	     (send *ri* :torque-vector
-		   (send *robot* :calc-torque
-			 :target-coords (list (send *robot* :rarm :end-coords)
-					      (send *robot* :larm :end-coords))
-			 :force-list (list #F(0 0 0) #F(0 0 0))
-			 :moment-list (list #F(0 0 0) #F(0 0 0))
-			 )))
+	 (cond
+	  ((send *ri* :get-val 'position-updated)
+	   (setq tv
+		 (send *robot* :calc-torque
+		       :target-coords (list (send *robot* :rarm :end-coords)
+					    (send *robot* :larm :end-coords))
+		       :force-list (list #F(0 0 0) #F(0 0 0))
+		       :moment-list (list #F(0 0 0) #F(0 0 0))
+		       ))
+	   (if send-torque? (send *ri* :torque-vector tv))
+	   (if torque-limit?
+	       (and (send *ri* :torque-min-vector
+			  (map float-vector
+			       #'(lambda (v m)
+				   (+ (if (> (* m v) 0)
+					  (* -1.0 torque-limit?)
+					(* +1.0 torque-limit?) v)))
+			       tv (send *ri* :mirror-bin)))
+		    (send *ri* :torque-max-vector
+			  (map float-vector
+			       #'(lambda (v m)
+				   (+ (if (> (* m v) 0)
+					  (* +1.0 torque-limit?)
+					(* -1.0 torque-limit?)) v))
+			       tv (send *ri* :mirror-bin)))))))
+	 ;; (map cons
+	 ;;      #'(lambda (v m j)
+	 ;; 	  (format t " ~Ax~A E [~A ~A] at ~A~%"
+	 ;; 		  v m
+	 ;; 		  (* (if (> (* m v) 0)
+	 ;; 			 (- 1.0 torque-limit?)
+	 ;; 		       (+ 1.0 torque-limit?)) v)
+	 ;; 		  (* (if (> (* m v) 0)
+	 ;; 			 (+ 1.0 torque-limit?)
+	 ;; 		       (- 1.0 torque-limit?)) v)
+	 ;; 		  (send j :name)))
+	 ;;      tv (send *ri* :mirror-bin) (send *robot* :joint-list))
 	 (format t "[~A]~%" (if (send *ri* :get-val 'position-updated) "receive" "skip"))
 	 (format t "  SUB: ~A/~A = ~A~%" cnt time (/ (* cnt 1.0) time))
 	 (format t "  PUB: ~A/~A = ~A~%" pub-cnt time (/ (* pub-cnt 1.0) time))
@@ -322,5 +372,8 @@
 	 (send *ri* :set-val 'position-updated nil)
 	 )))))))
 
+#|
 
+(send *robot* :angle-vector
+      #F(0.0 -2.21381 -0.17029 -120.0 -0.071416 4.33423 30.0 -0.598775 0.0 0.89541 0.499902 -120.0 0.049437 2.87301 -30.0 2.09296 -0.348825 0.085145 -1.25797 0.543833 -0.126345 -70.0))
 
