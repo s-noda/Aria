@@ -53,7 +53,7 @@ public class HttpListener extends AbstractNodeMain {
 					ros_res.setData("connection refused: " + HttpListener.this.url_string) ;
 					publisher.publish(ros_res) ;
 				}
-				System.out.println(" --- time: " + (System.currentTimeMillis()-start) + "[ms]") ;
+				// System.out.println(" --- time: " + (System.currentTimeMillis()-start) + "[ms]") ;
 			}
 		}, 1);
 	}
@@ -158,7 +158,7 @@ public class HttpListener extends AbstractNodeMain {
 	}
 	
 	protected String postConnection(String data) {
-		System.out.println("[postConnection] send " + data) ;
+	    // System.out.println("[postConnection] send " + data) ;
 		String ret = "" ;
 		try {
 			this.writer = new BufferedWriter(new OutputStreamWriter(
@@ -189,11 +189,11 @@ public class HttpListener extends AbstractNodeMain {
 	    ByteArrayOutputStream bout = new ByteArrayOutputStream();
 	    byte [] buffer = new byte[4096];
 	    int cnt = 1 ;
-	    System.out.println("[readAll]") ;
+	    // System.out.println("[readAll]") ;
 	    inputStream.read(buffer);
 	    while(true) {
 	        int len = inputStream.read(buffer);
-		    System.out.println("  " + cnt + ">0") ;
+		// System.out.println("  " + cnt + ">0") ;
 	        if(len < 0 || --cnt <= 0) {
 	            break;
 	        }

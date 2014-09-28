@@ -72,7 +72,7 @@ public class SocketListener extends HttpListener {
 						SocketListener.this.response_pub.publish(ros_res);
 					}
 				}
-				System.out.println(" --- time: " + (System.currentTimeMillis()-start) + "[ms]") ;
+				// System.out.println(" --- time: " + (System.currentTimeMillis()-start) + "[ms]") ;
 			}
 		}, 1);
 	}
@@ -116,7 +116,7 @@ public class SocketListener extends HttpListener {
 	
 	protected String readConnection() throws IOException{
 		String ret = "" ;
-		System.out.println("[readConnection] read " ) ;
+		// System.out.println("[readConnection] read " ) ;
 		try {
 			this.socket.setSoTimeout(3);
 			ret = findJsonString((this.reader = this.socket.getInputStream()));
@@ -129,7 +129,7 @@ public class SocketListener extends HttpListener {
 	}
 	
 	protected String postConnection(String data) {
-		System.out.println("[postConnection] send " + data) ;
+	    // System.out.println("[postConnection] send " + data) ;
 		String ret = "" ;
 		try {
 //			this.writer = new BufferedWriter(new OutputStreamWriter(
@@ -160,18 +160,18 @@ public class SocketListener extends HttpListener {
 	    byte [] buffer = new byte[5000];
 	    int cnt = 2;
 	    int len ;
-	    System.out.println("[readAll]") ;
+	    // System.out.println("[readAll]") ;
 	    try {
 		while(true) {
 		    len = inputStream.read(buffer);
-		    System.out.println("  " + cnt + ">0 (" + len + ")") ;
+		    // System.out.println("  " + cnt + ">0 (" + len + ")") ;
 		    if(len < 0 || --cnt <= 0) {
 			break;
 		    }
 		    bout.write(buffer, 0, len);
 		}
 	    } catch (SocketTimeoutException ex) {
-		System.out.println( "[readAll] Timeout!!" );
+		// System.out.println( "[readAll] Timeout!!" );
 		// ex.printStackTrace() ;
 	    }
 	    return bout.toByteArray();
