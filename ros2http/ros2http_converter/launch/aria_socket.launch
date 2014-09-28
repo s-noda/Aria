@@ -1,0 +1,12 @@
+<launch>
+  <node pkg="ros2http"
+	type="ros2http_listener.sh"
+	name="ros2http_listener" output="screen">
+    <param name="ARIA_SOCKET_PORT" value="1023" />
+  </node>
+  <node pkg="ros2http"
+	type="currentor_socket.sh"
+	name="currentor_socket" output="screen">
+    <param name="ARIA_SOCKET_PORT" value="1024" />
+  </node>
+</launch>

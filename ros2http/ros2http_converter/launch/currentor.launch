@@ -1,28 +1,26 @@
 <launch>
- <arg name="port" default="/dev/ttyUSB0" />
- <arg name="viz" default="0" />
- <include file="$(find openni2_launch)/launch/openni2.launch" />
- <include file="$(find ros2http)/ros2http_converter/launch/urdf.launch" />
- <group if="$(arg viz)">
- 	<include file="$(find jsk_pcl_ros)/launch/organized_multi_plane_segmentation.launch">
- 	  	 <arg name="BASE_FRAME_ID" value="/camera_link"/>
- 	</include>
-	<!-- <node pkg="rviz" type="rviz" name="rviz"/> -->
-	<node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" />
- </group>
+  <arg name="port" default="/dev/ttyUSB0" />
+  <arg name="viz" default="0" />
+  <include file="$(find openni2_launch)/launch/openni2.launch" />
+  <include file="$(find ros2http)/ros2http_converter/launch/urdf.launch" />
+  <group if="$(arg viz)">
+    <include file="$(find jsk_pcl_ros)/launch/organized_multi_plane_segmentation.launch">
+      <arg name="BASE_FRAME_ID" value="/camera_link"/>
+    </include>
+    <!-- <node pkg="rviz" type="rviz" name="rviz"/> -->
+    <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" />
+  </group>
 
- <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
-   <param name="baud" value="115200" />
-   <param name="port" value="$(arg port)" />
- </node>
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
+    <param name="baud" value="115200" />
+    <param name="port" value="$(arg port)" />
+  </node>
 
-    <node pkg="ros2http"
-	  type="imu_publisher.l"
-	  name="imu_publisher" />
-    <node pkg="ros2http"
-	  type="kduino_imu_converter.l"
-	  name="kduino_imu_converter" />
-    <node pkg="ros2http"
-	  type="ros2http_listener.sh"
-	  name="ros2http_listener" output="screen" />
+  <node pkg="ros2http"
+	type="imu_publisher.l"
+	name="imu_publisher" />
+  <node pkg="ros2http"
+	type="kduino_imu_converter.l"
+	name="kduino_imu_converter" />
+  <include file="$(find ros2http)/ros2http_converter/launch/aria_socket.launch" />
 </launch>
