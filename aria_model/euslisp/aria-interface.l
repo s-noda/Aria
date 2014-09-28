@@ -59,7 +59,7 @@
       1 1 1 -1 -1 -1 -1
       1 1 1 -1 +1 -1 +1
       1 1 1
-      1 0.5 -0.5
+      1 0.5 0.5
       0 0))
     (viewer? nil)
     )
@@ -113,7 +113,8 @@
    )
   (:state
    (&rest args)
-   (let ((spin? (cadr (member :spin? args))))
+   (let ((spin? (if (member :spin? args)
+		    (cadr (member :spin? args)) t)))
      (cond
       (spin?
        (ros::sleep)
