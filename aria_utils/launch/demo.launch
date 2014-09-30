@@ -1,0 +1,7 @@
+<launch>
+  <group>
+    <rosparam command="load" file="$(find aria_utils)/settings/id_map.yaml" ns="/id_map"/>
+    <rosparam command="load" file="$(find aria_utils)/settings/pid_gain.yaml" ns="/pid_gain"/>
+    <node pkg="aria_utils" type="demo.py" name="demo" output="screen"/>
+  </group>
+</launch>
