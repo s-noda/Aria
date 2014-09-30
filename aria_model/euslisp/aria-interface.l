@@ -341,16 +341,18 @@
 	       (and (send *ri* :torque-min-vector
 			  (map float-vector
 			       #'(lambda (v m)
-				   (+ (if (> (* m v) 0)
-					  (* -1.0 torque-limit?)
-					(* +1.0 torque-limit?) v)))
+				   (- v torque-limit?))
+				   ;; (+ (if (> (* m v) 0)
+				   ;; 	  (* -1.0 torque-limit?)
+				   ;; 	(* +1.0 torque-limit?)) v))
 			       tv (send *ri* :mirror-bin)))
 		    (send *ri* :torque-max-vector
 			  (map float-vector
 			       #'(lambda (v m)
-				   (+ (if (> (* m v) 0)
-					  (* +1.0 torque-limit?)
-					(* -1.0 torque-limit?)) v))
+				   (+ v torque-limit?))
+				   ;; (+ (if (> (* m v) 0)
+				   ;; 	  (* +1.0 torque-limit?)
+				   ;; 	(* -1.0 torque-limit?)) v))
 			       tv (send *ri* :mirror-bin)))))))
 	 ;; (map cons
 	 ;;      #'(lambda (v m j)
