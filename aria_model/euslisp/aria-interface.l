@@ -60,7 +60,7 @@
       1 1 1 -1 +1 -1 +1
       1 1 1
       1 0.5 0.5
-      0 0))
+      1 1))
     (viewer? nil)
     )
    (setq robot rb imu-coords ic joint-cnt jc
@@ -287,7 +287,7 @@
 (defun model2real
   nil
   (send *ri* :angle-vector
-	(send *robot* :angle-vector)))
+	(send *robot* :angle-vector) 3000))
 
 (defun real2model
   (&key (draw? t))
