@@ -233,23 +233,69 @@
     (format t "   ~A~%" (send mtm :stop))
     ))
 
+(defun call-handshake-interpole
+  nil
+  (send *robot* :reset-manip-pose)
+  (ros::publish "/aria_minjerk_interpolator/request/string"
+		(instance std_msgs::string :init
+			  :data
+			  (format nil "(~A ~A)"
+				  (send *robot* :angle-vector)
+				  5000)))
+  (unix:sleep 7)
+  (send *robot* :reset-manip-pose)
+  (send *robot* :hand-shake-pose)
+  (ros::publish "/aria_minjerk_interpolator/request/string"
+		(instance std_msgs::string :init
+			  :data
+			  (format nil "(~A ~A)"
+				  (send *robot* :angle-vector)
+				  5000)))
+  (unix:sleep 7))
+
+(defun call-hug-interpole
+  nil
+  (send *robot* :angle-vector (float-vector 0.0 -2.21381 -55.2 -45.6 62.4 57.6 26.4 -7.2 0.0 0.89541 0.499902 -52.8 -76.8 -57.6 -30.0 2.09296 -0.348825 0.085145 -1.25797 0.543833 -0.126345 -70.0))
+  (ros::publish "/aria_minjerk_interpolator/request/string"
+		(instance std_msgs::string :init
+			  :data
+			  (format nil "(~A ~A)"
+				  (send *robot* :angle-vector)
+				  5000)))
+  (unix:sleep 7)
+  (send *robot* :angle-vector (float-vector 0.0 -2.21381 -55.2 -110.4 60.0 60.0 57.6 -55.2 0.0 0.89541 4.8 -115.2 -36.0 -62.4 -36.0 55.2 -0.348825 0.085145 -1.25797 0.543833 -0.126345 -70.0))
+  (ros::publish "/aria_minjerk_interpolator/request/string"
+		(instance std_msgs::string :init
+			  :data
+			  (format nil "(~A ~A)"
+				  (send *robot* :angle-vector)
+				  5000)))
+  (unix:sleep 7)
+  )
+
+(ros::advertise "/aria_minjerk_interpolator/request/string"
+		std_msgs::string)
+;;
 (ros::subscribe "/aria_minjerk_interpolator/request/string"
 		std_msgs::string
 		#'interpole-string-callback
 		10)
-
 (ros::subscribe "/aria_minjerk_interpolator/request/joint_state"
 		sensor_msgs::jointstate
 		#'interpole-jointstate-callback
 		10)
 
-(ros::rate 30)
-(do-until-key
- (ros::sleep)
- (ros::spin-once)
- (send *robot* :angle-vector
-       (send *ri* :state :potentio-vector :spin? nil))
- (send *robot* :newcoords
-       (send *ri* :state :worldcoords  :spin? nil))
- (x::window-main-one)
- (send *viewer* :draw-objects))
+(defun start-minjerk-interpole-server
+  nil
+  (ros::rate 30)
+  (do-until-key
+   (ros::sleep)
+   (ros::spin-once)
+   (send *robot* :angle-vector
+	 (send *ri* :state :potentio-vector :spin? nil))
+   (send *robot* :newcoords
+	 (send *ri* :state :worldcoords  :spin? nil))
+   (x::window-main-one)
+   (send *viewer* :draw-objects)))
+
+;; (start-minjerk-interpole-server)
