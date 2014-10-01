@@ -32,19 +32,22 @@ public class SocketListener extends HttpListener {
 	
 	@Override
 	public GraphName getDefaultNodeName() {
-		return GraphName.of("ros2http/socket_listener");
+		return GraphName.of("ros2http_listener");
 	}
 
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
 		
+		//NodeConfiguration copy = new NodeConfiguration();
+		
 		ParameterTree params = connectedNode.getParameterTree();
-		if ( params.getInteger(this.getDefaultNodeName()+"/ARIA_SOCKET_PORT", -1) > 0 ){
-			this.portno = params.getInteger(this.getDefaultNodeName()+"/ARIA_SOCKET_PORT", -1);
-			System.out.println("ARIA_SOCKET_PORT="+this.portno);			
+		System.out.print("[SocketListener] get aria_port=");
+		if ( params.getInteger(connectedNode.getName()+"/ARIA_SOCKET_PORT", -1) > 0 ){
+			this.portno = params.getInteger(connectedNode.getName()+"/ARIA_SOCKET_PORT", -1);
 		} else {
 			this.portno = 1023;
 		}
+		System.out.println(this.portno + " from "+connectedNode.getName()+"/ARIA_SOCKET_PORT");
 		
 		this.response_pub =
 		        connectedNode.newPublisher("ros2http/socket_listener/reponse", std_msgs.String._TYPE);

@@ -30,12 +30,13 @@ public class CurrentorSocketNode extends SocketListener {
 		//super.onStart(connectedNode);
 
 		ParameterTree params = connectedNode.getParameterTree();
-		if ( params.getInteger(this.getDefaultNodeName()+"/ARIA_SOCKET_PORT", -1) > 0 ){
-			this.portno = params.getInteger(this.getDefaultNodeName()+"/ARIA_SOCKET_PORT", -1);
-			System.out.println("ARIA_SOCKET_PORT="+this.portno);			
+		System.out.print("[CurrentorSocket] get aria_port=");
+		if ( params.getInteger(connectedNode.getName()+"/ARIA_SOCKET_PORT", -1) > 0 ){
+			this.portno = params.getInteger(connectedNode.getName()+"/ARIA_SOCKET_PORT", -1);
 		} else {
 		    this.portno=1024;
 		}
+		System.out.println(this.portno + " from "+connectedNode.getName()+"/ARIA_SOCKET_PORT");
 		
 		this.mode = CurrentorSocketNode.NOP ;
 		this.last_request_time = System.currentTimeMillis();
