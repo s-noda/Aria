@@ -167,7 +167,7 @@
 		      (cdr (send robot :links))))
       (push (send-all jlist :joint-torque) tau)
       (setq x-buf (+ x-buf x-step))
-      ;;(send *viewer* :draw-objects)
+      ;; (send *viewer* :draw-objects)
       ;;(x::window-main-one)
       ;; (unix:usleep (round (* 0.01 1000 1000)))
       )
@@ -191,7 +191,10 @@
 	 #'(lambda (j av) (send j :put :p av))
 	 (send *robot* :joint-list) av)
     (format t "[start-interpolation] ~A~%" (send msg :data))
-    (interpolator-callback (send-all *jlist* :get :p) tm)))
+    (interpolator-callback (send-all *jlist* :get :p) tm)
+    ;;(send *robot* :angle-vector av)
+    ;;(send *viewer* :draw-objects)
+    ))
 
 (defun interpole-jointstate-callback
   (msg)

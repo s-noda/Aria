@@ -221,12 +221,13 @@
     (command 'torque)
     (gain (map float-vector
 	       #'(lambda (bin)
-		   (cond
-		    ((eq command 'torque) (* bin -9.8))
-		    ((eq command 'torque_max) (* bin -9.8))
-		    ((eq command 'torque_min) (* bin -9.8))
-		    ((eq command 'position) (* bin (deg2rad 1)))
-		    (t 1)))
+		   (let* ((bin-1 (if (< (abs bin) 1e-6) 0 (/ 1.0 bin))))
+		     (cond
+		      ((eq command 'torque) (* bin-1 -9.8))
+		      ((eq command 'torque_max) (* bin-1 -9.8))
+		      ((eq command 'torque_min) (* bin-1 -9.8))
+		      ((eq command 'position) (* bin-1 (deg2rad 1)))
+		      (t 1))))
 	       mirror-bin))
     )
    (map cons
