@@ -6,6 +6,7 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 import org.ros.concurrent.CancellableLoop;
+import org.ros.node.parameter.ParameterTree;
 
 public class CurrentorSocketNode extends SocketListener {
 
@@ -27,6 +28,14 @@ public class CurrentorSocketNode extends SocketListener {
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
 		//super.onStart(connectedNode);
+
+		ParameterTree params = connectedNode.getParameterTree();
+		if ( params.getInteger(this.getDefaultNodeName()+"/ARIA_SOCKET_PORT", -1) > 0 ){
+			this.portno = params.getInteger(this.getDefaultNodeName()+"/ARIA_SOCKET_PORT", -1);
+			System.out.println("ARIA_SOCKET_PORT="+this.portno);			
+		} else {
+		    this.portno=1024;
+		}
 		
 		this.mode = CurrentorSocketNode.NOP ;
 		this.last_request_time = System.currentTimeMillis();

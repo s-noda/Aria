@@ -39,9 +39,11 @@ public class SocketListener extends HttpListener {
 	public void onStart(ConnectedNode connectedNode) {
 		
 		ParameterTree params = connectedNode.getParameterTree();
-		if ( params.getInteger("ARIA_SOCKET_PORT", -1) > 0 ){
-			this.portno = params.getInteger("ARIA_SOCKET_PORT", -1);
+		if ( params.getInteger(this.getDefaultNodeName()+"/ARIA_SOCKET_PORT", -1) > 0 ){
+			this.portno = params.getInteger(this.getDefaultNodeName()+"/ARIA_SOCKET_PORT", -1);
 			System.out.println("ARIA_SOCKET_PORT="+this.portno);			
+		} else {
+			this.portno = 1023;
 		}
 		
 		this.response_pub =
