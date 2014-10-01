@@ -114,6 +114,8 @@
 		   std_msgs::float32multiarray)
    (ros::advertise "/aria_interpolator/position"
 		   std_msgs::string)
+   (ros::advertise "/aria_minjerk_interpolator/request/string"
+		   std_msgs::string)
    )
   (:state
    (&rest args)
@@ -250,7 +252,7 @@
    (send self :send-vector vector 'position))
   (:angle-vector
    (&optional (vector (send robot :angle-vector)) (tm 5000))
-   (ros::publish "/aria_interpolator/position"
+   (ros::publish "/aria_minjerk_interpolator/request/string";;"/aria_interpolator/position"
 		 (instance std_msgs::string
 			   :init
 			   :data (format nil "(~A ~A)" vector tm))))
