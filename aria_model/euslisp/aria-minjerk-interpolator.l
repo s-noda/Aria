@@ -167,8 +167,8 @@
 		      (cdr (send robot :links))))
       (push (send-all jlist :joint-torque) tau)
       (setq x-buf (+ x-buf x-step))
-      (send *viewer* :draw-objects)
-      (x::window-main-one)
+      ;;(send *viewer* :draw-objects)
+      ;;(x::window-main-one)
       ;; (unix:usleep (round (* 0.01 1000 1000)))
       )
     (push (cons :p (reverse p)) retl)
@@ -233,7 +233,7 @@
 	 (send *ri* :state :potentio-vector :spin? nil)
 	 (send *ri* :state :torque-vector :spin? nil))
     (cond
-     ((yes-or-no-p)
+     (t ;;(yes-or-no-p)
       (setq mtm (instance mtimer :init))
       ;; (dotimes (i (+ cnt 1))
       ;; 	(print 'pub)
@@ -346,9 +346,10 @@
    (x::window-main-one)
    (send *viewer* :draw-objects)))
 
-#|
+
 (start-minjerk-interpole-server)
 
+#|
 (send-all (send *robot* :joint-list) :put :mode 3)
 (send-all (send *robot* :head :joint-list) :put :mode 2)
 (send-all (send *robot* :torso :joint-list) :put :mode 2)
