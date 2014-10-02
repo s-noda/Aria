@@ -2,9 +2,10 @@
 
 (ros::roseus "sasabody_viewer")
 
-(require "euslib/demo/sasabuchi/sasabody/model/sasabody.l")
+;; (require "euslib/demo/sasabuchi/sasabody/model/sasabody.l")
+(require "package://aria_model/aria.l")
 
-(defvar *robot* (sasabody))
+(defvar *robot* (aria))
 (objects *robot*)
 (send *irtviewer* :change-background #F(0.9 0.9 0.9))
 (send *irtviewer* :draw-objects)
