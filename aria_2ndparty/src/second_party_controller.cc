@@ -155,18 +155,17 @@ SencondPartyController::SencondPartyController(ros::NodeHandle &nh) : gripper_(0
                       vec::VecInterpolation(1, tmp));
   tentacle_key_.push_back(tentacle_frame);
   tentacle_key_.push_back(tentacle_frame1);
-  
 }
 
 void SencondPartyController::Main()
 {
   // Control Gripper.
-  gripper_.right -= SENSITIVITY*gripper_accel_.right;
+  gripper_.right += SENSITIVITY*gripper_accel_.right;
   if (gripper_.right > 0.5) gripper_.right = 0.5;
   else if (gripper_.right < -0.5) gripper_.right = -0.5;
-  gripper_.left += 10*SENSITIVITY*gripper_accel_.left;
-  if (gripper_.left > 0.25) gripper_.left = 0.25;
-  else if (gripper_.left < -0.35) gripper_.left = -0.35;
+  gripper_.left -= SENSITIVITY*gripper_accel_.left;
+  if (gripper_.left > 0.5) gripper_.left = 0.5;
+  else if (gripper_.left < -0.5) gripper_.left = -0.5;
   // Control Eye.
   eye_.horizontal += SENSITIVITY*eye_accel_.horizontal*0.5;
   if (eye_.horizontal > 1.0) eye_.horizontal = 1.0;
@@ -218,8 +217,24 @@ void SencondPartyController::Callback(const sensor_msgs::Joy::ConstPtr& joy)
     joy_flag_ = true;
   }
   // Set gripper accel.
-  gripper_accel_.left = joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS];
-  gripper_accel_.right = joy->axes[PS3_AXIS_STICK_LEFT_UPWARDS];
+  if (joy->axes[PS3_AXIS_BUTTON_REAR_LEFT_1] < -0.4) {
+    if (fabsf(joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]) < 0.5)
+      gripper_accel_.left = 0;
+    else
+      gripper_accel_.left = 0.1*joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]
+          /fabsf(joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]);
+  } else {
+    gripper_accel_.left = 0;
+  }
+  if (joy->axes[PS3_AXIS_BUTTON_REAR_RIGHT_1] < -0.4) {
+    if (fabsf(joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]) < 0.5)
+      gripper_accel_.right = 0;
+    else
+      gripper_accel_.right = 0.1*joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]
+          /fabsf(joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]);
+  } else {
+    gripper_accel_.right = 0;
+  }
   // Set eye accel.
   eye_accel_.horizontal = -joy->axes[PS3_AXIS_STICK_RIGHT_LEFTWARDS];
   eye_accel_.vertical = joy->axes[PS3_AXIS_STICK_RIGHT_UPWARDS];
@@ -318,7 +333,7 @@ void SencondPartyController::TentacleInterpolation(const std_msgs::Float32MultiA
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "2ndparty_controller");
+  ros::init(argc, argv, "second_party_controller");
   ros::NodeHandle nh;
   SencondPartyController controller(nh);
   ros::Rate loop(controller.getFPS());
