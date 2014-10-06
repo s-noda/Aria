@@ -1,0 +1,31 @@
+<launch>
+  <arg name="port1" default="/dev/ttyUSB2" />
+  <arg name="baud" default="115200" />
+
+ <node pkg="rosserial_python" type="serial_node.py" name="serial_node1" output="screen">
+   <param name="baud" value="$(arg baud)" />
+   <param name="port" value="$(arg port1)" />
+ </node>
+
+ <node name="dynamixel_manager" pkg="dynamixel_controllers" type="controller_manager.py" required="true" output="screen">
+    <rosparam>
+      namespace: dxl_manager
+      serial_ports:
+       ttyUSB0:
+        port_name: "/dev/ttyUSB1"
+        baud_rate: 1000000
+        min_motor_id: 1
+        max_motor_id: 25
+        update_rate: 20
+    </rosparam>
+  </node>
+  <rosparam file="$(find aria_2ndparty)/launch/dynamixel.yaml" command="load" />
+  <node name="controller_spawner" pkg="dynamixel_controllers"
+        type="controller_spawner.py"
+        args="--manager=dxl_manager
+              --port=ttyUSB1
+              --type=simple
+              right_gripper
+              left_gripper"
+        output="screen" />
+</launch>
