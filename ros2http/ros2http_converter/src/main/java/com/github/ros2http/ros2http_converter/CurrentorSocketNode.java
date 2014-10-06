@@ -15,7 +15,7 @@ public class CurrentorSocketNode extends SocketListener {
 	private Publisher<std_msgs.String> sensor_name_pub ;	
 	private Publisher<std_msgs.String> currentor_socket_status ;	
 	
-	final private static int NOP=0, TRQ=1, POS=2, MOD=3, TMAX=4, TMIN=5;
+    final private static int NOP=0, TRQ=1, POS=2, MOD=3, TMAX=4, TMIN=5, WHL=6;
 	private int mode ;
 	private float[] requested_data ;
     private long last_request_time;
@@ -59,6 +59,20 @@ public class CurrentorSocketNode extends SocketListener {
 			    synchronized(CurrentorSocketNode.this){
 				System.out.println(" -- torque command received " + (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time) + "ms");
 				CurrentorSocketNode.this.mode = CurrentorSocketNode.TRQ;
+				CurrentorSocketNode.this.requested_data = arg.getData() ;
+				CurrentorSocketNode.this.last_request_time = System.currentTimeMillis();
+			    }
+			}
+		}, 1) ;
+
+		Subscriber<std_msgs.Float32MultiArray> whl_trq_sub = connectedNode.newSubscriber(
+				CurrentorSocketNode.nodename + "/request/wheel_torque_vector", std_msgs.Float32MultiArray._TYPE);
+		whl_trq_sub.addMessageListener(new MessageListener<std_msgs.Float32MultiArray>(){
+			@Override
+			public void onNewMessage(std_msgs.Float32MultiArray arg) {
+			    synchronized(CurrentorSocketNode.this){
+				System.out.println(" -- torque command received " + (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time) + "ms");
+				CurrentorSocketNode.this.mode = CurrentorSocketNode.WHL;
 				CurrentorSocketNode.this.requested_data = arg.getData() ;
 				CurrentorSocketNode.this.last_request_time = System.currentTimeMillis();
 			    }
@@ -141,6 +155,15 @@ public class CurrentorSocketNode extends SocketListener {
 						    }
 						    res = CurrentorSocketNode.this.postConnection(command);
 						    break;
+						case CurrentorSocketNode.WHL:
+						    command = CurrentorUtil.encodeJsonCommand("setWheelTorques",
+											      CurrentorSocketNode.this.requested_data, 2);
+						    if ( command == null ){
+							command = this.default_command ;
+							System.out.println(" -- Wheel torque command rejected/");
+						    }
+						    res = CurrentorSocketNode.this.postConnection(command);
+						    break;						    
 						case CurrentorSocketNode.POS:
 						    command = CurrentorUtil.encodeJsonCommand("setPositions",
 												     CurrentorSocketNode.this.requested_data);
@@ -257,25 +280,33 @@ public class CurrentorSocketNode extends SocketListener {
 			return true;
 		}
 		
-		public static String encodeFloatString(float[] in){
-			if ( in.length != CurrentorUtil.joint_cnt ){
+	    public static String encodeFloatString(float[] in, int array_size){
+			if ( in.length != array_size ){
 				System.out
 						.println("[encodeFloatString] invalid input vector length "
 								+ in.length
 								+ " vs "
-								+ CurrentorUtil.joint_cnt);
+								+ array_size);
 				return null;
 			}
 			byte[] buf = FloatString.farray2barray(in);
 			return FloatString.barray2xstring(buf);
 		}
+
+		public static String encodeFloatString(float[] in){
+		    return CurrentorUtil.encodeFloatString(in, CurrentorUtil.joint_cnt);
+		}
 		
 		public static String encodeJsonCommand(String func ){
 			return String.format("{\"method\":\"%s\",\"params\":[0],\"id\":\"1\"}", func) ;
 		}
+
+	    public static String encodeJsonCommand(String func, float[] array){
+		return CurrentorUtil.encodeJsonCommand(func,array,CurrentorUtil.joint_cnt);
+	    }
 		
-		public static String encodeJsonCommand(String func, float[] array ){
-		    String param = CurrentorUtil.encodeFloatString(array);
+	    public static String encodeJsonCommand(String func, float[] array, int array_size){
+		String param = CurrentorUtil.encodeFloatString(array, array_size);
 		    if ( param != null ){
 			return String.format("{\"method\":\"%s\",\"params\":[%s],\"id\":\"1\"}", func, param);
 		    } else {

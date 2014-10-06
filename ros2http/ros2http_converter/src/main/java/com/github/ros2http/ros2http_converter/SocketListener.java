@@ -123,7 +123,7 @@ public class SocketListener extends HttpListener {
 		String ret = "" ;
 		// System.out.println("[readConnection] read " ) ;
 		try {
-			this.socket.setSoTimeout(3);
+			this.socket.setSoTimeout(2);
 			ret = findJsonString((this.reader = this.socket.getInputStream()));
 			// this.reader.close() ;
 		} catch (IOException e1) {
