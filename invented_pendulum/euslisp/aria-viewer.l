@@ -2,7 +2,7 @@
 
 (ros::roseus "aria_viewer")
 
-(require "euslib/demo/sasabuchi/aria/model/aria.l")
+(require "package://aria_model/aria.l")
 
 (defvar *robot* (aria))
 (objects *robot*)
