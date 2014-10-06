@@ -41,13 +41,13 @@
 	 )
     (setf (aref *state-vector* 1) (calc-tilt mat))
     (setf (aref *state-vector* 3)
-	  (+ (* -0.5 (send (send msg :angular_velocity) :y))
+	  (+ (* -1.0 (send (send msg :angular_velocity) :x))
 	     (* 0.0 (aref *state-vector* 3))))
     (if *imu-timer*
 	(setq *imu-vel*
 	      (+ (aref *state-vector* 2)
 		 (* (send *imu-timer* :stop) ;; -0.02
-		    (send (send msg :linear_acceleration) :x)))))
+		    (send (send msg :linear_acceleration) :y)))))
     (setq *imu-timer* (instance mtimer :init))
     ))
 
@@ -80,10 +80,10 @@
 
 (defun calc-tilt
   (rot)
-  (let* ((x (transform rot #F(1 0 0)))
+  (let* ((x (transform rot #F(0 -1 0)))
 	 (v (normalize-vector
 	     (v+
-	      (map float-vector #'* #F(1 0 1)
+	      (map float-vector #'* #F(0 -1 1)
 		   (transform rot *centroid*))
 	      #F(0 0 0.05))
 	     )))
@@ -102,9 +102,9 @@
 		#'imu-callback
                 1)
 (ros::subscribe "/aria_viewer/centroid" ;; "/imu_data"
-                std_msgs::float32multiarray
+		std_msgs::float32multiarray
 		#'centroid-callback
-                1)
+		1)
 
 (ros::advertise "/invented_pendulum/sensor_vector"
 		std_msgs::float32multiarray)
