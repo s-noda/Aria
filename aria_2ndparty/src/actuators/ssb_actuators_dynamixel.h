@@ -21,8 +21,8 @@ class Dynamixel : public ssb_common_subscriber::Subscriber<dynamixel_msgs::Motor
 class GripperDynamixel : public Dynamixel {
  public:
   explicit GripperDynamixel(ros::NodeHandle &nh) {
-    right_gripper = nh.advertise<std_msgs::Float64>("/controller1/command", 100);
-    left_gripper = nh.advertise<std_msgs::Float64>("/controller2/command", 100);
+    right_gripper = nh.advertise<std_msgs::Float64>("/right_gripper/command", 100);
+    left_gripper = nh.advertise<std_msgs::Float64>("/left_gripper/command", 100);
   };
   inline void publish(ssb_common_vec::VecGripper vec) {
     Dynamixel::publish(right_gripper, vec.right);
