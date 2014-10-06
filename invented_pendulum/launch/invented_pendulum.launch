@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="invented_pendulum" type="aria-commander.l" name="aria_commander" />
+  <node pkg="invented_pendulum" type="aria-pendulum-state.l" name="aria_pendulum_state" />
+  <node pkg="invented_pendulum" type="aria-viewer.l" name="aria_viewer" />
+  <node pkg="invented_pendulum" type="ros-invented-pendulum-node.l" name="ros_invented_pendulum_node" />
+</launch>
