@@ -124,8 +124,10 @@
 	     (format nil "{\"method\":\"~A\",\"params\":~A,\"id\":~A}"
 		     func param id)))
   ;;)
+  (setq *response* nil)
   (if spin?
-      (dotimes (i 3)
+      (dotimes (i 100)
+	(if *response* (return-from nil nil))
 	(ros::sleep)
 	(ros::spin-once)))
   *response*

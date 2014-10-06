@@ -22,18 +22,7 @@
   (:init
    (&key
     ((:robot rb) (aria))
-    ((:imu-coords ic)
-     (let* ((bl (find-if #'(lambda (a) (string-equal (send a :name) "body_link"))
-			 (send rb :links))))
-       (make-cascoords
-	:name "imu_coords"
-	:coords
-	(send
-	 (send
-	  (send bl :copy-worldcoords)
-	  :rotate (deg2rad -90) :x)
-	 :rotate (deg2rad (* 2 90)) :z)
-	:parent bl)))
+    ((:imu-coords ic) (gen-aria-imu-coords rb))
     ((:joint-cnt jc) 30)
     ((:joint-vector jv) (instantiate float-vector jc))
     ((:joint-list jl)
@@ -271,6 +260,32 @@
    (send self :send-vector vector 'mode))
   )
 
+(defun gen-aria-imu-coords
+  (robot)
+  (let* ((bl (find-if #'(lambda (a) (string-equal (send a :name) "body_link"))
+		      (send robot :links))))
+    ;; (make-cascoords
+    ;; 	:name "imu_coords"
+    ;; 	:coords
+    ;; 	(send
+    ;; 	 (send
+    ;; 	  (send bl :copy-worldcoords)
+    ;; 	  :rotate (deg2rad -90) :x)
+    ;; 	 :rotate (deg2rad (* 2 90)) :z)
+    ;; 	:parent bl)
+    (make-cascoords
+     :name "imu_coords"
+     :coords
+     (send
+      (send
+       (send
+	(send bl :copy-worldcoords)
+	:translate #F(0 0 -550) :world)
+       :rotate (deg2rad -90) :x)
+      :rotate (deg2rad (* -1 90)) :z)
+     :parent bl)
+    ))
+
 (defun aria-init
   (&key
    (viewer? t))
@@ -409,6 +424,8 @@
 (send *robot* :angle-vector #f(0.0 -2.21381 -0.17029 -120.0 -0.071416 4.33423 30.0 -0.598775 0.0 0.89541 -81.6 -19.2 -4.8 -4.8 64.8 2.09296 -0.348825 0.085145 -1.25797 0.543833 -0.126345 -70.0))
 (send *ri* :_angle-vector (send *robot* :angle-vector))
 
+
+;; chop
 (dotimes (i 10)
   (send *ri* :mode-vector
 	(fill (copy-object (send *robot* :angle-vector)) 2))
