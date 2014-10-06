@@ -1,6 +1,6 @@
 #!/usr/bin/env roseus
 
-(ros::roseus "sasabody_commander")
+(ros::roseus "aria_commander")
 
 (defvar *joint-cnt* 30)
 (defvar *joint-vector* (instantiate float-vector *joint-cnt*))

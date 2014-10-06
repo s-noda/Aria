@@ -1,6 +1,6 @@
 #!/usr/bin/env roseus
 
-(ros::roseus "sasabody_pendulum")
+(ros::roseus "aria_pendulum")
 
 (defvar *state-vector* #F(0 0 0 0))
 
@@ -101,7 +101,7 @@
                 sensor_msgs::imu
 		#'imu-callback
                 1)
-(ros::subscribe "/sasabody_viewer/centroid" ;; "/imu_data"
+(ros::subscribe "/aria_viewer/centroid" ;; "/imu_data"
                 std_msgs::float32multiarray
 		#'centroid-callback
                 1)

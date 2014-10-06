@@ -1,10 +1,10 @@
 #!/usr/bin/env roseus
 
-(ros::roseus "sasabody_viewer")
+(ros::roseus "aria_viewer")
 
-(require "euslib/demo/sasabuchi/sasabody/model/sasabody.l")
+(require "euslib/demo/sasabuchi/aria/model/aria.l")
 
-(defvar *robot* (sasabody))
+(defvar *robot* (aria))
 (objects *robot*)
 (send *irtviewer* :change-background #F(0.9 0.9 0.9))
 (send *irtviewer* :draw-objects)
@@ -129,7 +129,7 @@
                 sensor_msgs::imu
 		#'imu-callback
                 1)
-(ros::advertise "/sasabody_viewer/centroid" ;; "/imu_data"
+(ros::advertise "/aria_viewer/centroid" ;; "/imu_data"
                 std_msgs::float32multiarray
                 1)
 
@@ -162,7 +162,7 @@
   (ros::spin-once)
   (send *viewer* :viewsurface :flush)
   (x::window-main-one)
-  (ros::publish "/sasabody_viewer/centroid"
+  (ros::publish "/aria_viewer/centroid"
 		(instance std_msgs::float32multiarray :init
 			  :data
 			  (transform
