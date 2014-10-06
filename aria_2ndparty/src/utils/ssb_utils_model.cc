@@ -59,11 +59,11 @@ void QuadOEyeModel::setParams(ssb_common_enum::Config settings) {
   min_limit_input_ = min_input_settings;
   ssb_common_vec::VecEye max_input_settings(1.0, 1.0);
   max_limit_input_ = max_input_settings;
-  ssb_common_vec::VecQuadOEye min_output_settings(1200, 1450, 1650, 1450);
+  ssb_common_vec::VecQuadOEye min_output_settings(1270, 1450, 1650, 1450);
   min_limit_output_ = min_output_settings;
-  ssb_common_vec::VecQuadOEye max_output_settings(1450, 1550, 1900, 1550);
+  ssb_common_vec::VecQuadOEye max_output_settings(1450, 1550, 1850, 1550);
   max_limit_output_ = max_output_settings;
-  ssb_common_vec::VecQuadOEye home_output_settings(1350, 1500, 1750, 1500);
+  ssb_common_vec::VecQuadOEye home_output_settings(1350, 1500, 1750, 1480);
   home_output_ = home_output_settings;
   ssb_common_vec::VecQuadOEye direction_settings(1, 1, 1, -1);
   sgn_direction_ = direction_settings;

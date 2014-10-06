@@ -160,17 +160,17 @@ SencondPartyController::SencondPartyController(ros::NodeHandle &nh) : gripper_(0
 void SencondPartyController::Main()
 {
   // Control Gripper.
-  gripper_.right += SENSITIVITY*gripper_accel_.right;
-  if (gripper_.right > 0.5) gripper_.right = 0.5;
+  gripper_.right += SENSITIVITY*gripper_accel_.right*3;
+  if (gripper_.right > 3.0) gripper_.right = 3.0;
   else if (gripper_.right < -0.5) gripper_.right = -0.5;
-  gripper_.left -= SENSITIVITY*gripper_accel_.left;
-  if (gripper_.left > 0.5) gripper_.left = 0.5;
+  gripper_.left -= SENSITIVITY*gripper_accel_.left*3;
+  if (gripper_.left > 3.0) gripper_.left = 3.0;
   else if (gripper_.left < -0.5) gripper_.left = -0.5;
   // Control Eye.
-  eye_.horizontal += SENSITIVITY*eye_accel_.horizontal*0.5;
+  eye_.horizontal += SENSITIVITY*eye_accel_.horizontal;
   if (eye_.horizontal > 1.0) eye_.horizontal = 1.0;
-  else if (eye_.horizontal < -0.17) eye_.horizontal = -0.17;
-  eye_.vertical += SENSITIVITY*eye_accel_.vertical*0.5;
+  else if (eye_.horizontal < -1.0) eye_.horizontal = -1.0;
+  eye_.vertical += SENSITIVITY*eye_accel_.vertical;
   if (eye_.vertical > 1.0) eye_.vertical = 1.0;
   else if (eye_.vertical < -1.0) eye_.vertical = -1.0;
   // Control Tentacle.
