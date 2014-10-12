@@ -4,9 +4,9 @@ import time
 import webcommands as currentor
 from std_msgs.msg import String
 
-currentor.json_string_topic_name = '/interpolation_wrapper/socket_listener/json_string'
-currentor.torque_vector_topic_name = '/interpolation_wrapper/request/torque_vector'
-currentor.position_vector_topic_name = '/interpolation_wrapper/request/position_vector'
+#currentor.json_string_topic_name = '/interpolation_wrapper/socket_listener/json_string'
+#currentor.torque_vector_topic_name = '/interpolation_wrapper/request/torque_vector'
+#currentor.position_vector_topic_name = '/interpolation_wrapper/request/position_vector'
 
 class Settings:
     id_map = rospy.get_param("/id_map")

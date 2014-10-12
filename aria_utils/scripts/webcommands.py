@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import subprocess
+import re
 import time
 from std_msgs.msg import String
 from std_msgs.msg import Float32MultiArray
@@ -34,13 +35,26 @@ try_till_send = False
 
 shscript = './aria_echo.sh'
 
+def echo_joints(data_type):
+    msg = subprocess.check_output([shscript, str(data_type)])
+    msg = re.split('\[|\]',msg)
+    msg.remove('')
+    msg.remove(' ---\n')
+    msg = map(float, msg[0].split(','))
+    return msg
+
+def echo_joint(data_type, joint):
+    msg = subprocess.check_output([shscript, str(data_type), str(joint)])
+    msg = msg.split(' ')
+    msg.remove('---\n')
+    return float(msg[0])
+
 def echo_parity(pub, msg, data_type, joint, value):
     while True:
         pub.publish(msg)
-        parity = subprocess.call([shscript, str(data_type), str(joint), str(value)])
-        print(parity)
-        if (parity == 1):
-            return;
+        parity = echo_joint(data_type, joint)
+        if (parity == value):
+            return
         time.sleep(0.1)
 
 def set_feedback(fb_type):
@@ -53,11 +67,10 @@ def echo_parity_fb(pub, msg, data_type, feedback_type, joint, value):
     while True:
         pub.publish(msg)
         set_feedback(feedback_type)
-        parity = subprocess.call([shscript, str(data_type), str(joint), str(value)])
-        if (parity == 1):
+        parity = echo_joint(data_type, joint)
+        if (parity == value):
             return
         time.sleep(0.1)
-
 
 def enable_parity():
     global try_till_send
@@ -116,15 +129,24 @@ def set_positions(data):
     msg.data = data
     pub.publish(msg)
 
-def set_pid_gain(joint, p, i, d):
-    msg = String()
-    msg.data = '{\"method\":\"setPIDGain\",\"params\":\"[%d,%f,%f,%f]\",\"id\":\"1\"}' % (joint, p, i, d)
-    pub = rospy.Publisher(pid_string_topic_name, String)
-    if try_till_send:
-        echo_parity_fb(pub, msg, 'velocity', fb_kp, joint, p)
+def set_pid_gain(joint, p, i=0.0, d=0.0):
+    pub = rospy.Publisher(pid_vector_topic_name, Float32MultiArray)
+    msg = Float32MultiArray()
+    if not type(joint) is int:
+        msg.data = p
     else:
-        pub.publish(msg)
+        set_feedback(fb_kp)
+        tmp = echo_joints('debug')
+        tmp.extend([0.0]*joint_size)
+        set_feedback(fb_kd)
+        tmp.extend(echo_joints('debug'))
+        msg.data = tmp
+        msg.data[joint] = p
+        msg.data[joint+joint_size] = i
+        msg.data[joint+2*joint_size] = d
+    pub.publish(msg)
 
+    
 def init_pid_gain(joint, p, i, d):
     msg = String()
     msg.data = '{\"method\":\"initPIDGain\",\"params\":\"[%d,%f,%f,%f]\",\"id\":\"1\"}' % (joint, p, i, d)
