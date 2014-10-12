@@ -19,6 +19,7 @@ public class CurrentorSocketNode extends SocketListener {
 	private int mode ;
 	private float[] requested_data ;
     private long last_request_time;
+    private long com_step_time;
 	
 	@Override
 	public GraphName getDefaultNodeName() {
@@ -37,6 +38,14 @@ public class CurrentorSocketNode extends SocketListener {
 		    this.portno=1024;
 		}
 		System.out.println(this.portno + " from "+connectedNode.getName()+"/ARIA_SOCKET_PORT");
+
+		System.out.print("[CurrentorSocket] get aria_com_step_time=");
+		if ( params.getInteger(connectedNode.getName()+"/ARIA_SOCKET_COM_STEP_TIME", -1) > 0 ){
+			this.com_step_time = params.getInteger(connectedNode.getName()+"/ARIA_SOCKET_COM_STEP_TIME", -1);
+		} else {
+		    this.com_step_time=15;
+		}
+		System.out.println(this.com_step_time + " from "+connectedNode.getName()+"/ARIA_SOCKET_COM_STEP_TIME");
 		
 		this.mode = CurrentorSocketNode.NOP ;
 		this.last_request_time = System.currentTimeMillis();
@@ -133,7 +142,7 @@ public class CurrentorSocketNode extends SocketListener {
 		
 		connectedNode.executeCancellableLoop( new CancellableLoop(){
 			private long last_time = System.currentTimeMillis();
-			private long step = 10 ;
+			private long step = CurrentorSocketNode.this.com_step_time ;
 			private String default_command = CurrentorUtil.encodeJsonCommand("getValues");
 			//private std_msgs.String ros_res = CurrentorSocketNode.this.response_pub.newMessage();
 			@Override
@@ -211,9 +220,7 @@ public class CurrentorSocketNode extends SocketListener {
 						//
 						if ( CurrentorUtil.decodeJsonCommand(res) ){
 							std_msgs.String ros_res = CurrentorSocketNode.this.currentor_socket_status.newMessage();
-							ros_res.setData("connection refused: "
-									+ CurrentorSocketNode.this.hostname + ":"
-									+ CurrentorSocketNode.this.portno);
+							ros_res.setData(res);
 							CurrentorSocketNode.this.currentor_socket_status.publish(ros_res);
 						}
 						CurrentorSocketNode.this.publishSensors();

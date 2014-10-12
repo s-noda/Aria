@@ -123,7 +123,7 @@ public class SocketListener extends HttpListener {
 		String ret = "" ;
 		// System.out.println("[readConnection] read " ) ;
 		try {
-			this.socket.setSoTimeout(2);
+			this.socket.setSoTimeout(3);
 			ret = findJsonString((this.reader = this.socket.getInputStream()));
 			// this.reader.close() ;
 		} catch (IOException e1) {
@@ -146,6 +146,7 @@ public class SocketListener extends HttpListener {
 //			this.writer.write("\r\n");
 //			this.writer.write(data);
 			this.writer.write(data.getBytes());
+			//this.writer.write(0);
 			// this.writer.write("\n");
 			this.writer.flush();
 			this.writer.flush();
@@ -162,21 +163,33 @@ public class SocketListener extends HttpListener {
 	// stream util
 	public byte[] readAll(InputStream inputStream) throws IOException {
 	    ByteArrayOutputStream bout = new ByteArrayOutputStream();
-	    byte [] buffer = new byte[5000];
+	    byte [] buffer = new byte[2048];
 	    int cnt = 2;
 	    int len ;
+	    boolean null_detected = false ;
 	    // System.out.println("[readAll]") ;
 	    try {
-		while(true) {
+		while( ! null_detected ) {
 		    len = inputStream.read(buffer);
 		    // System.out.println("  " + cnt + ">0 (" + len + ")") ;
 		    if(len < 0 || --cnt <= 0) {
 			break;
 		    }
+		    for ( int i=0; i<len ; i++ ){
+			if ( buffer[i] == 0 ){
+			    System.out.println("null detected !! " + i + "+" + (buffer.length*(1-cnt)));
+			    null_detected = true ;
+			    len = i;
+			    break;
+			}
+		    }
 		    bout.write(buffer, 0, len);
+		    if(len < buffer.length) {
+			break;
+		    }
 		}
 	    } catch (SocketTimeoutException ex) {
-		// System.out.println( "[readAll] Timeout!!" );
+		System.out.println( "[readAll] Timeout!!" );
 		// ex.printStackTrace() ;
 	    }
 	    return bout.toByteArray();
