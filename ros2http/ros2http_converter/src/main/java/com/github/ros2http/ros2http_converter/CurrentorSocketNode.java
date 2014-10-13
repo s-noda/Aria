@@ -15,7 +15,7 @@ public class CurrentorSocketNode extends SocketListener {
 	private Publisher<std_msgs.String> sensor_name_pub ;	
 	private Publisher<std_msgs.String> currentor_socket_status ;	
 	
-    final private static int NOP=0, TRQ=1, POS=2, MOD=3, TMAX=4, TMIN=5, WHL=6;
+    final private static int NOP=0, TRQ=1, POS=2, MOD=3, TMAX=4, TMIN=5, WHL=6, PID=7, CTV=8;
 	private int mode ;
 	private float[] requested_data ;
     private long last_request_time;
@@ -139,6 +139,31 @@ public class CurrentorSocketNode extends SocketListener {
 			    }
 			}
 		}, 1) ;
+
+		Subscriber<std_msgs.Float32MultiArray> pid_sub = connectedNode.newSubscriber(
+				CurrentorSocketNode.nodename + "/request/pid_vector", std_msgs.Float32MultiArray._TYPE);
+		pid_sub.addMessageListener(new MessageListener<std_msgs.Float32MultiArray>(){
+			@Override
+			public void onNewMessage(std_msgs.Float32MultiArray arg) {
+			    synchronized(CurrentorSocketNode.this){
+				CurrentorSocketNode.this.mode = CurrentorSocketNode.PID;
+				CurrentorSocketNode.this.requested_data = arg.getData() ;
+			    }
+			}
+		}, 1) ;
+
+		Subscriber<std_msgs.Float32MultiArray> ctv_sub = connectedNode.newSubscriber(
+				CurrentorSocketNode.nodename + "/request/pid_vector", std_msgs.Float32MultiArray._TYPE);
+		ctv_sub.addMessageListener(new MessageListener<std_msgs.Float32MultiArray>(){
+			@Override
+			public void onNewMessage(std_msgs.Float32MultiArray arg) {
+			    synchronized(CurrentorSocketNode.this){
+				CurrentorSocketNode.this.mode = CurrentorSocketNode.CTV;
+				CurrentorSocketNode.this.requested_data = arg.getData() ;
+			    }
+			}
+		}, 1) ;
+
 		
 		connectedNode.executeCancellableLoop( new CancellableLoop(){
 			private long last_time = System.currentTimeMillis();
@@ -211,6 +236,24 @@ public class CurrentorSocketNode extends SocketListener {
 							}
 							res = CurrentorSocketNode.this.postConnection(command);
 							break;
+						case CurrentorSocketNode.PID:
+						    command = CurrentorUtil.encodeJsonCommand("setWheelTorques",
+											      CurrentorSocketNode.this.requested_data, 3*CurrentorUtil.joint_cnt);
+						    if ( command == null ){
+							command = this.default_command ;
+							System.out.println(" -- pid command rejected/");
+						    }
+						    res = CurrentorSocketNode.this.postConnection(command);
+						    break;						    
+						case CurrentorSocketNode.CTV:
+						    command = CurrentorUtil.encodeJsonCommand("setWheelTorques",
+											      CurrentorSocketNode.this.requested_data);
+						    if ( command == null ){
+							command = this.default_command ;
+							System.out.println(" -- ct command rejected/");
+						    }
+						    res = CurrentorSocketNode.this.postConnection(command);
+						    break;						    
 						case CurrentorSocketNode.NOP:
 						default:
 						    res = CurrentorSocketNode.this.postConnection(this.default_command);
@@ -260,7 +303,7 @@ public class CurrentorSocketNode extends SocketListener {
 	
 	static class CurrentorUtil {
 		static String[] sensor_names = new String[] { "position", "velocity",
-							      "temperature", "torque", "voltage", "imu" };
+							      "temperature", "torque", "mode", "debug", "imu" };
 		static int joint_cnt = 30;
 
 	    static byte[] byte_buf = new byte[4*(CurrentorUtil.joint_cnt*(CurrentorUtil.sensor_names.length-1)+6)];
