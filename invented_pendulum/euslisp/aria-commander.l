@@ -12,6 +12,8 @@
 
 (ros::advertise "/currentor_socket/request/torque_vector"
 		std_msgs::float32multiarray)
+(ros::advertise "/currentor_socket/request/wheel_torque_vector"
+		std_msgs::float32multiarray)
 (ros::subscribe "/invented_pendulum/command_vector"
 		std_msgs::float32multiarray
 		#'sensor-callback
@@ -30,7 +32,11 @@
   (if (not (ros::ok)) (return-from nil nil))
   (ros::sleep)
   (ros::spin-once)
-  (ros::publish "/currentor_socket/request/torque_vector"
-		(instance std_msgs::float32multiarray :init
-			  :data *joint-vector*))
+  ;; (ros::publish "/currentor_socket/request/torque_vector"
+  ;; 		(instance std_msgs::float32multiarray :init
+  ;; 			  :data *joint-vector*))
+  (ros::publish "/currentor_socket/request/wheel_torque_vector"
+   		(instance std_msgs::float32multiarray :init
+			  :data (float-vector (aref *joint-vector* 21)
+					      (aref *joint-vector* 22))))
   ))
