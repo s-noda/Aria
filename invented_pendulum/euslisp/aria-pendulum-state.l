@@ -73,23 +73,24 @@
 	       *prev-wheel-angle*
 	       (setq *prev-wheel-angle-raw* (copy-object *wheel-vector*)))))
     ;; (print now)
-    (* r
+    (* r 0.9
        (deg2rad
 	(v. #F(-0.5 0.5)
 	    (map float-vector #'- (setq *prev-wheel-angle* now) *wheel-zero*))))))
 
 (defun calc-tilt
   (rot)
-  (let* ((x (transform rot #F(0 -1 0)))
+  (let* ((x_ (float-vector 0 -1 0))
+	 (x (transform rot x_))
 	 (v (normalize-vector
 	     (v+
-	      (map float-vector #'* #F(0 -1 1)
+	      (map float-vector #'* (v+ x_ #F(0 0 1))
 		   (transform rot *centroid*))
-	      #F(0 0 0.05))
+	      #F(0 0 0.0))
 	     )))
     ;;(format t ">>>>>>>>>>>> ")
     ;;(print
-     (* (if (plusp (v. v #F(1 0 0))) -1 1)
+     (* (if (plusp (v. v x_)) 1 -1)
 	(acos (v. v #F(0 0 1))))))
 
 
