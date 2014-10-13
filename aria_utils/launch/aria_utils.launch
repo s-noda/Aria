@@ -4,6 +4,5 @@
    <rosparam command="load" file="$(find aria_utils)/settings/initial_pose.yaml" ns="/initial_pose"/>
    <rosparam command="load" file="$(find aria_utils)/settings/pid_gain.yaml" ns="/pid_gain"/>
    <node pkg="aria_utils" type="initializer2.py" name="configurator" output="screen"/>
-   <node pkg="aria_utils" type="interpolation_wrapper2.py" name="interpolation_wrapper" output="screen"/>
  </group>
 </launch>
