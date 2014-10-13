@@ -33,16 +33,19 @@
 	 (mat-raw (quaternion2matrix
 		   (float-vector (send ori :w) (send ori :x)
 				 (send ori :y) (send ori :z))))
-	 (mat (send (make-coords
-		     :rpy (map cons #'*
-			       '(0 1 1)
-			       (car (rpy-angle mat-raw))))
-		    :worldrot))
+	 (mat-vec (car (rpy-angle mat-raw)))
+	 mat
 	 )
+    (if (< (length mat-vec) 3) (return-from imu-callback nil))
+    (setq mat (send (make-coords
+		     :rpy (map cons #'* '(0 1 1) mat-vec))
+		    :worldrot))
     (setf (aref *state-vector* 1) (calc-tilt mat))
     (setf (aref *state-vector* 3)
-	  (+ (* -1.0 (send (send msg :angular_velocity) :x))
-	     (* 0.0 (aref *state-vector* 3))))
+	  (max
+	   (+ (* -1.0 (send (send msg :angular_velocity) :x))
+	      (* 0.0 (aref *state-vector* 3)))
+	   0))
     (if *imu-timer*
 	(setq *imu-vel*
 	      (+ (aref *state-vector* 2)
@@ -90,8 +93,8 @@
 	     )))
     ;;(format t ">>>>>>>>>>>> ")
     ;;(print
-     (* (if (plusp (v. v x_)) 1 -1)
-	(acos (v. v #F(0 0 1))))))
+    (* (if (plusp (v. v x_)) 1 0)
+       (acos (v. v #F(0 0 1))))))
 
 
 (ros::subscribe "/currentor_socket/sensor_array/position"
@@ -143,7 +146,7 @@
        (setf (aref *state-vector* 2)
 	     (/ (apply #'+ (append vel-candidates '(0 0)))
 		(length vel-candidates)))))
- (format t " velcan ~A vs ~A" *imu-vel* *position-vel*)
+ ;; (format t " velcan ~A vs ~A" *imu-vel* *position-vel*)
  (ros::publish "/invented_pendulum/sensor_vector"
 	       (instance std_msgs::float32multiarray :init
 			 :data (print *state-vector*)))

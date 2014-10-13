@@ -55,7 +55,7 @@
 (ros::advertise "/invented_pendulum/observed_state_vector"
 		std_msgs::float32multiarray)
 
-(ros::rate 100)
+(ros::rate 50)
 (let* ((id 0))
   (do-until-key
    (bench

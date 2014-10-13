@@ -26,7 +26,7 @@
 		(instance std_msgs::float32multiarray :init
 			  :data *joint-vector*)))
 
-(ros::rate 100)
+(ros::rate 50)
 (do-until-key
  (bench
   (if (not (ros::ok)) (return-from nil nil))

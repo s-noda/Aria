@@ -33,9 +33,9 @@
    (send-super* :init
 		:x x :y y :u u :maxu maxu :minu minu
 		:W (make-matrix 1 4
-				'((10 0 0 0)
+				'(;;(10 0 0 0)
 				  (0 1 0 0)
-				  (0 0 0.01 0)
+				  ;;(0 0 0.01 0)
 				  (0 0 0 0.01)
 				  ))
 		args)
