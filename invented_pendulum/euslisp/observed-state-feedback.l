@@ -97,9 +97,9 @@
 	 (graph-callback
 	  #'(lambda (id &rest args)
 	      (list (cons :tm id)
-		    ;;(cons :u1 (aref (send self :u) 0))
+		    (cons :u1 (aref (send self :u) 0))
 		    ;;(cons :u2 (aref (send self :u) 1))
-		    (cons :x (aref (send self :x) 0))
+		    ;; (cons :x (aref (send self :x) 0))
 		    (cons :q (aref (send self :x) 1))
 		    ;;(cons :dx (aref (send self :x) 2))
 		    ;;(cons :dq (aref (send self :x) 3))

@@ -22,8 +22,8 @@
     (wr 0.1)
     (I 7)
     (g 9.8)
-    (ur -0.3)
-    (ux -0.3)
+    (ur -10)
+    (ux -10)
     &allow-other-keys)
    (mapcar
     #'(lambda (sym)
@@ -33,10 +33,10 @@
    (send-super* :init
 		:x x :y y :u u :maxu maxu :minu minu
 		:W (make-matrix 1 4
-				'(;;(10 0 0 0)
+				'((10 0 0 0)
 				  (0 1 0 0)
-				  ;;(0 0 0.01 0)
-				  ;;(0 0 0 0.01)
+				  (0 0 0.01 0)
+				  (0 0 0 0.01)
 				  ))
 		args)
    )
