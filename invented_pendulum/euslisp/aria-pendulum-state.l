@@ -36,15 +36,19 @@
 	 (mat-vec (car (rpy-angle mat-raw)))
 	 mat
 	 )
-    (if (< (length mat-vec) 3) (return-from imu-callback nil))
+    (if (or (< (length mat-vec) 3)
+	    (find-if #'(lambda (n) (not (numberp n))) mat-vec))
+	(return-from imu-callback nil))
+    ;; (print (float-vector (send ori :w) (send ori :x)
+    ;; (send ori :y) (send ori :z)))
     (setq mat (send (make-coords
 		     :rpy (map cons #'* '(0 1 1) mat-vec))
 		    :worldrot))
     (setf (aref *state-vector* 1) (calc-tilt mat))
     (setf (aref *state-vector* 3)
 	  (max
-	   (+ (* -1.0 (send (send msg :angular_velocity) :x))
-	      (* 0.0 (aref *state-vector* 3)))
+	   (+ (* -0.5 (send (send msg :angular_velocity) :x))
+	      (* 0.5 (aref *state-vector* 3)))
 	   0))
     (if *imu-timer*
 	(setq *imu-vel*

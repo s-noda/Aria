@@ -3,7 +3,7 @@
 ;; #-:jsk (if (functionp 'jsk) (jsk))
 ;; #-:rbrain (if (functionp 'rbrain) (rbrain))
 
-(ros::roseus "invented_pendulm")
+(ros::roseus "ros_invented_pendulm_node")
 (ros::load-ros-manifest "std_msgs")
 
 (require "invented-pendulum.l")
@@ -46,10 +46,24 @@
   (setq *x* (send msg :data))
   )
 
+(defun torque-offset-callback
+  (msg)
+  (if (eq (length (send msg :data)) 2)
+      (setf (aref *u* 0)
+	    (+ (aref *u* 0)
+	       (/ (- (aref (send msg :data) 1)
+		     (aref (send msg :data) 0))
+		  2.0)))))
+
 (ros::subscribe "/invented_pendulum/sensor_vector"
 		std_msgs::float32multiarray
 		#'sensor-vector-callback
 		1)
+(ros::subscribe "/invented_pendulum/torque_offset_vector"
+		std_msgs::float32multiarray
+		#'torque-offset-callback
+		1)
+
 (ros::advertise "/invented_pendulum/command_vector"
 		std_msgs::float32multiarray)
 (ros::advertise "/invented_pendulum/observed_state_vector"
