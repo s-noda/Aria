@@ -117,7 +117,7 @@ InteractivePoseMaker::InteractivePoseMaker(ros::NodeHandle &nh) :
   _fps_ = 30;
   for (int i=0; i<16; ++i)
     flags_[i] = true;
-  publisher_ = nh_.advertise<ssb_srvs_mss::Float32MultiArray>(
+  publisher_ = nh_.advertise<std_msgs::Float32MultiArray>(
       "/toHtmlServer", 1000);
   subscriber_ = nh_.subscribe<sensor_msgs::Joy>(
       "/joy", 10, &InteractivePoseMaker::Callback, this);
