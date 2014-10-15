@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<script src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script src="http://cdn.robotwebtools.org/roslibjs/current/roslib.js"></script>
+<script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+<script>
+
+  var ros = new ROSLIB.Ros();
+
+  ros.on('error', function(error) {
+    console.log(error);
+  });
+
+  ros.on('connection', function() {
+    console.log('Connection made!');
+  });
+
+  ros.on('close', function() {
+    console.log('Connection closed.');
+  });
+
+  ros.connect('ws://localhost:9090');
+
+  var motionData = [];
+
+  var eyePublisher = new ROSLIB.Topic({
+    ros : ros,
+    name : '/2ndParty/request/eye',
+    messageType : 'std_msgs/Float32MultiArray'
+  });
+
+  var ariaPublisher = new ROSLIB.Topic({
+    ros : ros,
+    name : '/currentor_socket/request/position_vector',
+    messageType : 'std_msgs/Float32MultiArray'
+  });
+
+  function sleep(time) {
+    var d1 = new Date().getTime();
+    var d2 = new Date().getTime();
+    while (d2 < d1 + time) {
+      d2 = new Date().getTime();
+    }
+    return;
+  }
+
+  function sendJson(json) {
+    $.ajax({
+      type : "POST",
+      url : "http://192.168.97.155/",
+      data : JSON.stringify(json).
+      success : function(data, dataType) {
+        console.log(data + "/" + dataType);
+      },
+      error : function(XMLHttpRequest, textStatus, errorThrown) {
+        console.log(XMLHttpRequest + "/" + textStatus + "/" + errorThrown);
+      }
+    });
+  }
+
+  function setTime(time) {
+    var set_time = {
+      method : "setTime",
+      params : [time],
+      id : "1"
+    }
+    sendJson(set_time);
+    return false;
+  }
+
+  function play(tableID) {
+    var table = document.getElementById(tableID);
+    var rowCount = table.rows.length;
+    for (var i=1; i< rowCount; i++) {
+      if (table.rows[i].cells[2].childNodes[0].value == "on") {
+        var dat = motionData[i-1]
+        var time_dat = dat[dat.length-1]
+        var aria_dat = dat.slice(0, dat.length-4);
+        var eye_dat = dat.slice(dat.length-3, dat.length-2);
+        eye_dat.push(time_dat)
+        var aria_msg = new ROSLIB.Message({
+          data : aria_dat
+        });
+        setTime(time_dat)
+        ariaPublisher.publish(aria_msg);
+        var eye_msg = new ROSLIB.Message({
+	  data : eye_dat
+        });
+        eyePublisher.publish(eye_msg);
+        sleep(time_dat*1000);
+      }
+    }
+  }
+  
+  function addRow(tableID, value) {
+    var table = document.getElementById(tableID);
+    var rowCount = table.rows.length;
+    var row = table.insertRow(rowCount);
+  
+    var cell1 = row.insertCell(0);
+    var element1 = document.createElement("input");
+    element1.type = "checkbox";
+    element1.name = "chkbox[]";
+    cell1.appendChild(element1);
+  
+    var cell2 = row.insertCell(1);
+    var element2 = document.createElement("input");
+    element2.type = "text";
+    element2.value = "pose name";
+    element2.name = "txtbox[]"
+    cell2.appendChild(element2);
+ 
+    var cell3 = row.insertCell(2);
+    var element3 = document.createElement("input");
+    element3.type = "button";
+    element3.value = "on";
+    element3.name = "btnbox[]";
+    element3.onclick = function() {
+      console.log("click");
+      if (element3.value == "on") {
+        element3.value = "off";
+        cell3.style.textAlign = 'right';
+      } else {
+        element3.value = "on";
+        cell3.style.textAlign = 'left';
+      }
+    };
+    cell3.appendChild(element3);
+
+    var cell4 = row.insertCell(3);
+    var element4 = document.createElement("input");
+    element4.type = "button";
+    element4.value = "play";
+    element4.name = "btnbox[]";
+    element4.onclick = function() {
+      var dat = motionData[this.parentNode.parentNode.rowIndex-1]
+      var time_dat = dat[dat.length-1]
+      var aria_dat = dat.slice(0, dat.length-4);
+      var eye_dat = dat.slice(dat.length-3, dat.length-2);
+      eye_dat.push(time_dat)
+      var aria_msg = new ROSLIB.Message({
+        data : aria_dat
+      });
+      setTime(time_dat)
+      ariaPublisher.publish(aria_msg);
+      var eye_msg = new ROSLIB.Message({
+	data : eye_dat
+      });
+      eyePublisher.publish(eye_msg);
+      sleep(time_dat*1000);
+    };
+    cell4.appendChild(element4);
+
+    motionData.push(value);
+    console.log(motionData);
+  }
+
+  var motionDataServer = new ROSLIB.Topic({
+    ros : ros,
+    name : '/toHtmlServer',
+    MessageType : 'std_msgs/Float32MultiArray'
+  });
+
+  motionDataServer.subscribe(function(message) {
+    addRow('dataTable', message.data);
+  });
+
+  function deleteRow(tableID) {
+    try {
+      var table = document.getElementById(tableID);
+      var rowCount = table.rows.length;  
+      for (var i=0; i< rowCount; i++) {
+        var row = table.rows[i];
+        var chkbox = row.cells[0].childNodes[0];
+        if(null != chkbox && true == chkbox.checked) {
+          table.deleteRow(i);
+          motionData.splice(i-1,1);
+          rowCount--;
+          i--;
+        }
+      }
+      console.log(motionData);
+    }catch(e) {
+      alert(e);
+    }
+  }
+
+  function swapFrontRow(tableID) {
+    var table = document.getElementById(tableID);
+    var rowCount = table.rows.length;
+    for(var i=2; i< rowCount; i++) {
+      var row = table.rows[i];
+      var chkbox = row.cells[0].childNodes[0];
+      if(null != chkbox && true == chkbox.checked) {
+        sibling = row.previousElementSibling,
+        parent = row.parentNode;
+        parent.insertBefore(row, sibling);
+        j = i-1;
+        motionData.splice(j-1, 2, motionData[j], motionData[j-1]);
+        console.log(motionData);
+        return;
+      }
+    }
+  }
+
+  function swapBackRow(tableID) {
+    var table = document.getElementById(tableID);
+    var rowCount = table.rows.length - 1;
+    for(var i=1; i< rowCount; i++) {
+      var row = table.rows[i];
+      var chkbox = row.cells[0].childNodes[0];
+      if(null != chkbox && true == chkbox.checked) {
+        sibling = row.nextElementSibling,
+        parent = row.parentNode;
+        parent.insertBefore(sibling, row);
+        j = i-1;
+        motionData.splice(j, 2, motionData[j+1], motionData[j])
+        console.log(motionData);
+        return;
+      }
+    }
+  }
+
+
+</script>
+</head>
+
+<body>
+  <h1>Manual for developers</h1>
+  <p>Run the following commands in the terminal then refresh this page.
+    Check the JavaScript console for the output.</p>
+  <ol>
+    <li><tt>roscore</tt></li>
+    <li><tt>roslaunch rosbridge_server rosbridge_websocket.launch</tt></li>
+  </ol>
+  <p>To add a new pose, connect a controller by</p>
+  <ol>
+    <li><tt>sudo bash</tt></li>
+    <li><tt>rosrun ps3joy ps3joy.py</tt></li>
+    <li><tt>rosparam set /joy_node/dev /dev/input/js</tt></li>
+    <li><tt>rosrun joy joy_node</tt></li>
+  </ol>
+  <FORM>
+    <H2>motion editor</H2>
+    Edit saved pose from controller.
+    <BR/>
+  </FORM>
+<!--
+  <INPUT type="button" value="add" onclick="addRow('dataTable')" />
+-->
+  <INPUT type="button" value="delete" onclick="deleteRow('dataTable')" />
+  <INPUT type="button" value="priority up" onclick="swapFrontRow('dataTable')" />
+  <INPUT type="button" value="priority down" onclick="swapBackRow('dataTable')" />
+  <INPUT type="button" value="play continous" onclick="play('dataTable')" />
+  <TABLE id="dataTable" width="400px" border="1">
+    <TR>
+      <TD> </TD>
+      <TD> </TD>
+      <TD> </TD>
+      <TD> </TD>
+    </TR>
+  </TABLE>
+
+</body>
+</html>

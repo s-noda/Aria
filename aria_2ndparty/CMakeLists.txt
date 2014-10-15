@@ -43,9 +43,14 @@ include_directories(
 )
 
 add_executable(second_party_controller src/second_party_controller.cc src/common/ssb_common_of.cc src/common/ssb_common_vec.cc src/utils/ssb_utils_model.cc src/utils/ssb_utils_interpolation.cc)
+add_executable(second_party_core src/second_party_core.cc src/common/ssb_common_of.cc src/common/ssb_common_vec.cc src/utils/ssb_utils_model.cc src/utils/ssb_utils_interpolation.cc)
 
 
 target_link_libraries(second_party_controller
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(second_party_core
   ${catkin_LIBRARIES}
 )
 
