@@ -16,7 +16,7 @@ import org.ros.node.parameter.ParameterTree;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
-public class SocketListener extends HttpListener {
+public class SocketListener extends HttpListener implements Runnable{
 
 	protected String hostname = "192.168.97.155" ;
 	protected int portno = 1023 ;
@@ -27,6 +27,8 @@ public class SocketListener extends HttpListener {
 	protected boolean connected ;
 	protected OutputStream writer ;
 	protected InputStream reader ;
+	
+	protected Thread thread;
 	
 	private Publisher<std_msgs.String> response_pub;
 	
@@ -80,11 +82,20 @@ public class SocketListener extends HttpListener {
 				// System.out.println(" --- time: " + (System.currentTimeMillis()-start) + "[ms]") ;
 			}
 		}, 1);
+		
+		this.thread = new Thread(this);
+		this.thread.start();
+	}
+	
+	@Override
+	public void finalize(){
+		this.thread = null;
 	}
 	
 	@Override
 	public void onShutdown(Node node){
 		this.closeConnection() ;
+		this.thread = null;
 	}
 	
 	protected boolean openConnection(String hostname, int portno) {
@@ -193,5 +204,21 @@ public class SocketListener extends HttpListener {
 		// ex.printStackTrace() ;
 	    }
 	    return bout.toByteArray();
+	}
+
+	@Override
+	public void run() {
+		while ( this.thread == null ){
+			try {
+				Thread.sleep(1000);
+				if ( this.addr != null ){
+					this.connected = this.addr.isReachable(1000);
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
