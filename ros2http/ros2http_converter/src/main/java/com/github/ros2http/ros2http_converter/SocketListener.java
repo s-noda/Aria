@@ -83,8 +83,8 @@ public class SocketListener extends HttpListener implements Runnable{
 			}
 		}, 1);
 		
-		//this.thread = new Thread(this);
-		//this.thread.start();
+		this.thread = new Thread(this);
+		this.thread.start();
 	}
 	
 	@Override
