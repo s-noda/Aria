@@ -1,0 +1,56 @@
+#!/bin/bash
+aria() {
+    if [ $1 = "echo" ] ; then
+	if [ -z "$3" ] ; then
+	    rostopic echo "/currentor_socket/sensor_array/"$2"/data"
+	else
+	    rostopic echo "/currentor_socket/sensor_array/"$2"/data"[$3]
+	fi
+    elif [ $1 = "once" ] ; then
+	if [ -z "$3" ] ; then
+	    rostopic echo -n1 "/currentor_socket/sensor_array/"$2"/data"
+	else
+	    rostopic echo -n1 "/currentor_socket/sensor_array/"$2"/data"[$3]
+	fi
+    elif [ $1 = "pub" ] ; then
+	if [ $2 = "gripper" ] ; then
+	    rostopic pub --once "/2ndparty/request/gripper" std_msgs/Float32MultiArray '{data: '$3'}'
+	elif [ $2 = "eye" ] ; then
+	    rostopic pub --once "/2ndparty/request/eye" std_msgs/Float32MultiArray '{data: '$3'}'
+	elif [ $2 = "setFeedback" ] ; then
+	    mode=0
+	    if [ $3 = "velocity" ] ; then
+		mode=0
+	    elif [ $3 = "torque" ] ; then
+		mode=1
+	    elif [ $3 = "position" ] ; then
+		mode=2
+	    elif [ $3 = "Kp" ] ; then
+		mode=3
+	    elif [ $3 = "Kd" ] ; then
+		mode=4
+	    elif [ $3 = "Ct" ] ; then
+		mode=5
+	    elif [ $3 = "Cp" ] ; then
+		mode=6
+	    else
+		mode=0
+	    fi
+	    rostopic pub --once "/ros2http/socket_listener/json_string" std_msgs/String '{data: "{\"method\":\"setFeedback\",\"params\":\"['$mode']\",\"id\":\"0\"}"}'
+	else
+	    rostopic pub --once "/ros2http/socket_listener/json_string" std_msgs/String '{data: "{\"method\":\"'$2'\",\"params\":\"'$3'\",\"id\":\"0\"}"}'
+	fi
+    elif [ $1 = "list" ] ; then
+	echo $'aria once <torque, position, mode, velocity, temperature, debug>\naria echo <torque, position, mode, velocity, temperature, debug>\naria pub sendZero\naria pub setTorque [<joint>,<torque>]\naria pub setPosition [<joint>,<angle>]\naria pub setControlMode [<joint>,<mode>]\naria pub setTime [<time>]\naria pub setFeedback <torque, position, Kp, Kd, Ct, Cp>\naria gripper [<right>,<left>,<time>]\naria eye [<horizontal>,<vertical>,<time>]\naria set_pid_gain\naria initiate\naria send_zero'
+    elif [ $1 = "mode" ] ; then
+	if [ $2 = "standard" ] ; then
+	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}'
+	elif [ $2 = "pose" ] ; then
+	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','2.0','2.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}'
+	fi
+    else
+	rostopic pub --once "/aria/commandline" std_msgs/String $1
+    fi
+}
+
+aria $1 $2 $3 $4 $5
