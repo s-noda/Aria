@@ -83,8 +83,8 @@ public class SocketListener extends HttpListener implements Runnable{
 			}
 		}, 1);
 		
-		this.thread = new Thread(this);
-		this.thread.start();
+		//this.thread = new Thread(this);
+		//this.thread.start();
 	}
 	
 	@Override
@@ -138,6 +138,7 @@ public class SocketListener extends HttpListener implements Runnable{
 			ret = findJsonString((this.reader = this.socket.getInputStream()));
 			// this.reader.close() ;
 		} catch (IOException e1) {
+			this.connected = false;
 			System.out.println("[readConnection] input stream error");
 			e1.printStackTrace();
 		}
@@ -165,6 +166,7 @@ public class SocketListener extends HttpListener implements Runnable{
 			ret = this.readConnection() ;
 			//this.closeConnection() ;
 		} catch (IOException e) {
+			this.connected = false;
 			ret = e.getMessage() ;
 		} finally{
 		}

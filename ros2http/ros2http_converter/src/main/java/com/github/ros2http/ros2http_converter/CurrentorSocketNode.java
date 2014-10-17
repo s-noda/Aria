@@ -376,8 +376,8 @@ public class CurrentorSocketNode extends SocketListener {
 
 		});
 		
-		this.thread = new Thread(this);
-		this.thread.start();
+		//this.thread = new Thread(this);
+		//this.thread.start();
 	}
 
 	private void publishSensors() {
