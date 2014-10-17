@@ -118,7 +118,8 @@
     var table = document.getElementById(tableID);
     var rowCount = table.rows.length;
     var cdt = new Date();
-    var dat = [cdt.getFullYear()+cdt.getDate()+cdt.getMonth()+cdt.getHours()+cdt.getMinutes()+cdt.getSeconds() ,rowCount, motionData[0].length]
+    var datefloat = cdt.getFullYear()*10000000000+(cdt.getMonth()+1)*100000000+cdt.getDate()*1000000+cdt.getHours()*10000+cdt.getMinutes()*100+cdt.getSeconds();
+    var dat = [datefloat ,rowCount, motionData[0].length]
     for (var i=1; i< rowCount; i++) {
       dat.push.apply(dat, motionData[i-1]);
     }
@@ -126,7 +127,7 @@
       data : dat
     });
     writePublisher.publish(save_pose);
-    console.log("saved data");
+    console.log(datefloat);
   }
 
   function addRow(tableID, value) {
