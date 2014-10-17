@@ -40,7 +40,7 @@ private:
 SecondPartyCore::SecondPartyCore(ros::NodeHandle &nh)
 {
   nh_ = nh;
-  _fps_ = 20;
+  _fps_ = 100;
   // model init
   gripper_model_
     = boost::shared_ptr<mdl::GripperModel>(new mdl::GripperModel(nh));

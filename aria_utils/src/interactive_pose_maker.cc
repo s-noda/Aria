@@ -1,3 +1,5 @@
+#include <iostream>
+#include <fstream>
 #include "aria.h"
 #include "../../aria_2ndparty/src/common/ssb_common_common.h"
 #include "../../aria_2ndparty/src/utils/ssb_utils_model.h"
@@ -90,14 +92,18 @@ private:
   void JoyMainInit(const sensor_msgs::Joy::ConstPtr& joy);
   void JoyMenu(const sensor_msgs::Joy::ConstPtr& joy);
   void JoyMain(const sensor_msgs::Joy::ConstPtr& joy);
-  void Callback(const sensor_msgs::Joy::ConstPtr& joy){ (this->*joyfunc_)(joy); };
+  void Callback(const sensor_msgs::Joy::ConstPtr& joy);
+  void Read(const std_msgs::String::ConstPtr& msg);
+  void Write(const std_msgs::Float32MultiArray::ConstPtr& msg);
   // member variables
   ros::Publisher publisher_;
   ros::Subscriber subscriber_;
+  ros::Subscriber file_subscriber_;
+  ros::Subscriber joy_subscriber_;
   int _fps_;
   std::vector<std::vector<float> > pose_;
   std::vector<float> time_;
-  bool flags_[16];
+  bool flags_[19];
   // second party controller variables
   vec::VecGripper gripper_accel_;
   vec::VecEye eye_accel_;
@@ -115,12 +121,16 @@ InteractivePoseMaker::InteractivePoseMaker(ros::NodeHandle &nh) :
     gripper_accel_(0, 0), eye_accel_(0, 0)
 {
   _fps_ = 30;
-  for (int i=0; i<16; ++i)
-    flags_[i] = true;
+  for (int i=0; i<19; ++i)
+    flags_[i] = false;
   publisher_ = nh_.advertise<std_msgs::Float32MultiArray>(
-      "/toHtmlServer", 1000);
-  subscriber_ = nh_.subscribe<sensor_msgs::Joy>(
-      "/joy", 10, &InteractivePoseMaker::Callback, this);
+      "/concatenate_request/flow", 1000);
+  subscriber_ = nh_.subscribe<std_msgs::Float32MultiArray>(
+      "/concatenate_request/stock", 1000, &InteractivePoseMaker::Write, this);
+  file_subscriber_ = nh_.subscribe<std_msgs::String>(
+      "/aria_web_ui/file_request", 1000, &InteractivePoseMaker::Read, this);
+  joy_subscriber_ = nh_.subscribe<sensor_msgs::Joy>(
+      "/joy", 1000, &InteractivePoseMaker::Callback, this);
   joyfunc_ = &InteractivePoseMaker::JoyMainInit;
   gripper_speed_ = 0.1;
   eye_speed_ = 1.0;
@@ -133,7 +143,78 @@ InteractivePoseMaker::InteractivePoseMaker(ros::NodeHandle &nh) :
 
 void InteractivePoseMaker::Main()
 {
+  // This is written here because Callback is only called
+  // when there are key press differences.
+  if (flags_[PS3_AXIS_BUTTON_REAR_LEFT_1]
+      || flags_[PS3_AXIS_BUTTON_REAR_RIGHT_1]) {
+    gripper_.left -= SENSITIVITY*gripper_accel_.left*3;
+    if (gripper_.left > 3.0) gripper_.left = 3.0;
+    else if (gripper_.left < -0.5) gripper_.left = -0.5;
+    gripper_.right += SENSITIVITY*gripper_accel_.right*3;
+    if (gripper_.right > 3.0) gripper_.right = 3.0;
+    else if (gripper_.right < -0.5) gripper_.right = -0.5;
+    gripper_model_->set_input(vec::VecGripper(gripper_));
+    gripper_model_->Input2Output();
+    gripper_model_->send();
+  }
+  if (flags_[PS3_AXIS_BUTTON_REAR_LEFT_2]) {
+    if (eye_.horizontal > 1.0) eye_.horizontal = 1.0;
+    else if (eye_.horizontal < -1.0) eye_.horizontal = -1.0;
+    eye_.vertical += SENSITIVITY*eye_accel_.vertical;
+    if (eye_.vertical > 1.0) eye_.vertical = 1.0;
+    else if (eye_.vertical < -1.0) eye_.vertical = -1.0;
+    eye_model_->set_input(vec::VecEye(eye_));
+    eye_model_->Input2Output();
+    eye_model_->send();
+  }
 }
+
+void InteractivePoseMaker::
+Callback(const sensor_msgs::Joy::ConstPtr& joy)
+{
+  (this->*joyfunc_)(joy);
+}
+
+
+void InteractivePoseMaker::
+Read(const std_msgs::String::ConstPtr& msg)
+{
+  std::string line;
+  std::ifstream myfile(msg->data.c_str());
+  if (myfile.is_open()) {
+    getline(myfile, line);
+    std::stringstream ss0(line);
+    float number_of_pose, joints;
+    ss0 >> number_of_pose >> joints;
+    pose_.resize(number_of_pose);
+    int i = 0;
+    while (getline(myfile, line)) {
+      std::stringstream ss(line);
+      pose_[i].resize(joints);
+      for (int j=0; j<joints; ++j) {
+	ss >> pose_[i].at(j);
+      }
+    }
+  }
+}
+
+void InteractivePoseMaker::
+Write(const std_msgs::Float32MultiArray::ConstPtr& msg)
+{
+  std::ofstream myfile;
+  std::vector<float> data;
+  data.resize(msg->data[1]);
+  float joints = msg->data[2];
+  myfile.open(ofToString(msg->data[0]).c_str());
+  myfile << msg->data[1] << " " << msg->data[2] << "\n";
+  for (int i=0; i<data.size(); ++i) {
+    for (int j=0; j<joints; ++j)
+      myfile << msg->data[3+i*joints+j] << " ";
+    myfile << "\n";
+  }
+  myfile.close();
+}
+
 
 bool InteractivePoseMaker::
 ButtonAction(const sensor_msgs::Joy::ConstPtr& joy,
@@ -150,7 +231,7 @@ ButtonAction(const sensor_msgs::Joy::ConstPtr& joy,
     (this->*func)(joy);
     return true;
   } else {
-    flags_[ps3_key] = false;    
+    flags_[ps3_key] = false;
     (this->*exception)(joy);
     return false;
   }
@@ -165,9 +246,11 @@ HoldAction(const sensor_msgs::Joy::ConstPtr& joy,
                const sensor_msgs::Joy::ConstPtr& joy))
 {
   if ((joy->axes[ps3_key] < -0.4)) {
+    flags_[ps3_key] = true;
     (this->*func)(joy);
     return true;
   } else {
+    flags_[ps3_key] = false;
     (this->*exception)(joy);
     return false;
   }
@@ -181,15 +264,16 @@ ActionNone(const sensor_msgs::Joy::ConstPtr& joy)
 void InteractivePoseMaker::
 ActionSavePose(const sensor_msgs::Joy::ConstPtr& joy)
 {
-  pose_.push_back(c_.position);
   std_msgs::Float32MultiArray msg;
   int data_size = c_.position.size();
   msg.data.resize(data_size);
   msg.data = c_.position;
-  msg.data.resize(data_size+3);
-  msg.data.at(data_size) = eye_.horizontal;
-  msg.data.at(data_size+1) = eye_.vertical;
-  msg.data.at(data_size+2) = 3.0; // extra element for time
+  msg.data.resize(data_size+5);
+  msg.data.at(data_size) = gripper_.left;
+  msg.data.at(data_size+1) = gripper_.right;
+  msg.data.at(data_size+2) = eye_.horizontal;
+  msg.data.at(data_size+3) = eye_.vertical;
+  msg.data.at(data_size+4) = 3.0; // extra element for time
   publisher_.publish(msg);
   ROS_WARN("saved pose");
 }
@@ -250,14 +334,13 @@ ActionSubEyeSpeed(const sensor_msgs::Joy::ConstPtr& joy)
 void InteractivePoseMaker::
 ActionControlList(const sensor_msgs::Joy::ConstPtr& joy)
 {
-  ROS_INFO("%s\n %s\n %s\n %s\n &s\n %s\n %s\n",
+  ROS_INFO("%s\n %s\n %s\n %s\n %s\n %s\n",
            "control list:",
            " save pose: press [circle]",
-           " controller freezed?: press [cross]",
            " move left gripper: hold [L1] tilt [left_stick]",
            " move right gripper: hold [R1] tilt [left_stick]",
-           " move eye: tilt [right_stick]"
-           " select: open config menu");
+           " move eye: tilt [right_stick]",
+           " triangle: open config menu");
 }
 
 void InteractivePoseMaker::
@@ -269,9 +352,6 @@ ActionGripperLeft(const sensor_msgs::Joy::ConstPtr& joy)
     gripper_accel_.left =
         gripper_speed_*joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]
         /fabsf(joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]);
-  gripper_.left -= SENSITIVITY*gripper_accel_.left*3;
-  if (gripper_.left > 3.0) gripper_.left = 3.0;
-  else if (gripper_.left < -0.5) gripper_.left = -0.5;
 }
 
 void InteractivePoseMaker::
@@ -283,9 +363,6 @@ ActionGripperRight(const sensor_msgs::Joy::ConstPtr& joy)
     gripper_accel_.right =
         gripper_speed_*joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]
         /fabsf(joy->axes[PS3_AXIS_STICK_LEFT_LEFTWARDS]);
-  gripper_.right += SENSITIVITY*gripper_accel_.right*3;
-  if (gripper_.right > 3.0) gripper_.right = 3.0;
-  else if (gripper_.right < -0.5) gripper_.right = -0.5;
 }
 
 void InteractivePoseMaker::
@@ -294,11 +371,6 @@ ActionEye(const sensor_msgs::Joy::ConstPtr& joy)
   eye_accel_.horizontal = -eye_speed_*joy->axes[PS3_AXIS_STICK_RIGHT_LEFTWARDS];
   eye_accel_.vertical = eye_speed_*joy->axes[PS3_AXIS_STICK_RIGHT_UPWARDS];
   eye_.horizontal += SENSITIVITY*eye_accel_.horizontal;
-  if (eye_.horizontal > 1.0) eye_.horizontal = 1.0;
-  else if (eye_.horizontal < -1.0) eye_.horizontal = -1.0;
-  eye_.vertical += SENSITIVITY*eye_accel_.vertical;
-  if (eye_.vertical > 1.0) eye_.vertical = 1.0;
-  else if (eye_.vertical < -1.0) eye_.vertical = -1.0;
 }
 
 void InteractivePoseMaker::
@@ -333,55 +405,47 @@ JoyMenuInit(const sensor_msgs::Joy::ConstPtr& joy) {
            "Menu:",
            " change left gripper speed: hold [L1]or[R1] press [<][>]",
            " change eye speed: hold [right_stick] press [<][>]",
-           " select: return");
+           " triangle: return");
   joyfunc_ = &InteractivePoseMaker::JoyMenu;
 }
 
 void InteractivePoseMaker::
 JoyMenu(const sensor_msgs::Joy::ConstPtr& joy) {
-  ButtonAction(joy, PS3_BUTTON_SELECT,
+  ButtonAction(joy, PS3_AXIS_BUTTON_ACTION_TRIANGLE,
                &InteractivePoseMaker::ActionSwitch2Main);
   HoldAction(joy, PS3_AXIS_BUTTON_REAR_LEFT_1,
              &InteractivePoseMaker::ActionGripperSpeed);
   HoldAction(joy, PS3_AXIS_BUTTON_REAR_RIGHT_1,
              &InteractivePoseMaker::ActionGripperSpeed);
-  HoldAction(joy, PS3_BUTTON_STICK_RIGHT,
+  HoldAction(joy, PS3_AXIS_BUTTON_REAR_LEFT_2,
              &InteractivePoseMaker::ActionEyeSpeed);
 }
 
 void InteractivePoseMaker::
 JoyMainInit(const sensor_msgs::Joy::ConstPtr& joy) {
-  ROS_WARN("switched to main");
+  ROS_WARN("switched to head and gripper");
   joyfunc_ = &InteractivePoseMaker::JoyMain;
 }
 
 void InteractivePoseMaker::
 JoyMain(const sensor_msgs::Joy::ConstPtr& joy) {
-  ButtonAction(joy, PS3_BUTTON_START,
+  ButtonAction(joy, PS3_AXIS_BUTTON_ACTION_SQUARE,
                &InteractivePoseMaker::ActionControlList);
-  ButtonAction(joy, PS3_BUTTON_SELECT,
+  ButtonAction(joy, PS3_AXIS_BUTTON_ACTION_TRIANGLE,
                &InteractivePoseMaker::ActionSwitch2Menu);
-  ButtonAction(joy, PS3_BUTTON_ACTION_CIRCLE,
+  ButtonAction(joy, PS3_AXIS_BUTTON_ACTION_CIRCLE,
                &InteractivePoseMaker::ActionSavePose);
   // Set gripper accel.
-  if (HoldAction(joy, PS3_AXIS_BUTTON_REAR_LEFT_1,
-                 &InteractivePoseMaker::ActionGripperLeft,
-                 &InteractivePoseMaker::ExceptionGripperLeft) ||
-      HoldAction(joy, PS3_AXIS_BUTTON_REAR_RIGHT_1,
-                 &InteractivePoseMaker::ActionGripperRight,
-                 &InteractivePoseMaker::ExceptionGripperRight)) {
-    gripper_model_->set_input(vec::VecGripper(gripper_));
-    gripper_model_->Input2Output();
-    gripper_model_->send();
-  }
+  HoldAction(joy, PS3_AXIS_BUTTON_REAR_LEFT_1,
+	     &InteractivePoseMaker::ActionGripperLeft,
+	     &InteractivePoseMaker::ExceptionGripperLeft);
+  HoldAction(joy, PS3_AXIS_BUTTON_REAR_RIGHT_1,
+	     &InteractivePoseMaker::ActionGripperRight,
+	     &InteractivePoseMaker::ExceptionGripperRight);
   // Set eye accel.
-  if (HoldAction(joy, PS3_AXIS_BUTTON_REAR_LEFT_2,
-                 &InteractivePoseMaker::ActionEye,
-                 &InteractivePoseMaker::ExceptionEye)) {
-    eye_model_->set_input(vec::VecEye(eye_));
-    eye_model_->Input2Output();
-    eye_model_->send();
-  }
+  HoldAction(joy, PS3_AXIS_BUTTON_REAR_LEFT_2,
+	     &InteractivePoseMaker::ActionEye,
+	     &InteractivePoseMaker::ExceptionEye);
 }
 
 int main(int argc, char** argv)

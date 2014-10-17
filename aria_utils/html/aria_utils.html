@@ -37,6 +37,18 @@
     messageType : 'std_msgs/Float32MultiArray'
   });
 
+  var readPublisher = new ROSLIB.Topic({
+    ros : ros,
+    name : '/aria_web_ui/file_request',
+    messageType : 'std_msgs/String'
+  });
+
+  var writePublisher = new ROSLIB.Topic({
+    ros : ros,
+    name : '/concatenate_request/stock',
+    messageType : 'std_msgs/Float32MultiArray'
+  });
+
   function sleep(time) {
     var d1 = new Date().getTime();
     var d2 = new Date().getTime();
@@ -50,7 +62,7 @@
     $.ajax({
       type : "POST",
       url : "http://192.168.97.155/",
-      data : JSON.stringify(json).
+      data : JSON.stringify(json),
       success : function(data, dataType) {
         console.log(data + "/" + dataType);
       },
@@ -76,6 +88,7 @@
     for (var i=1; i< rowCount; i++) {
       if (table.rows[i].cells[2].childNodes[0].value == "on") {
         var dat = motionData[i-1]
+        motionData[i-1][dat.length-1] = table.rows[i].cells[4].childNodes[0].value;
         var time_dat = dat[dat.length-1]
         var aria_dat = dat.slice(0, dat.length-4);
         var eye_dat = dat.slice(dat.length-3, dat.length-2);
@@ -93,25 +106,47 @@
       }
     }
   }
-  
+
+  function readdata() {
+    var read_file = new ROSLIB.Message({
+      data : parseString($('#filename').val())
+    });
+    readPublisher.publish(read_file);
+  }
+
+  function writedata(tableID) {
+    var table = document.getElementById(tableID);
+    var rowCount = table.rows.length;
+    var cdt = new Date();
+    var dat = [cdt.getFullYear()+cdt.getDate()+cdt.getMonth()+cdt.getHours()+cdt.getMinutes()+cdt.getSeconds() ,rowCount, motionData[0].length]
+    for (var i=1; i< rowCount; i++) {
+      dat.push.apply(dat, motionData[i-1]);
+    }
+    var save_pose = new ROSLIB.Message({
+      data : dat
+    });
+    writePublisher.publish(save_pose);
+    console.log("saved data");
+  }
+
   function addRow(tableID, value) {
     var table = document.getElementById(tableID);
     var rowCount = table.rows.length;
     var row = table.insertRow(rowCount);
-  
+
     var cell1 = row.insertCell(0);
     var element1 = document.createElement("input");
     element1.type = "checkbox";
     element1.name = "chkbox[]";
     cell1.appendChild(element1);
-  
+
     var cell2 = row.insertCell(1);
     var element2 = document.createElement("input");
     element2.type = "text";
     element2.value = "pose name";
     element2.name = "txtbox[]"
     cell2.appendChild(element2);
- 
+
     var cell3 = row.insertCell(2);
     var element3 = document.createElement("input");
     element3.type = "button";
@@ -153,13 +188,20 @@
     };
     cell4.appendChild(element4);
 
+    var cell5 = row.insertCell(4);
+    var element5 = document.createElement("input");
+    element5.type = "text";
+    element5.value = "3.0";
+    element5.name = "txtbox[]";
+    cell5.appendChild(element5);
+
     motionData.push(value);
     console.log(motionData);
   }
 
   var motionDataServer = new ROSLIB.Topic({
     ros : ros,
-    name : '/toHtmlServer',
+    name : '/concatenate_request/flow',
     MessageType : 'std_msgs/Float32MultiArray'
   });
 
@@ -170,7 +212,7 @@
   function deleteRow(tableID) {
     try {
       var table = document.getElementById(tableID);
-      var rowCount = table.rows.length;  
+      var rowCount = table.rows.length;
       for (var i=0; i< rowCount; i++) {
         var row = table.rows[i];
         var chkbox = row.cells[0].childNodes[0];
@@ -250,11 +292,14 @@
 <!--
   <INPUT type="button" value="add" onclick="addRow('dataTable')" />
 -->
+  <p><input id="filename" value="" type="text">
+    <input type="button" value="read" onclick="readdata()"></p>
   <INPUT type="button" value="delete" onclick="deleteRow('dataTable')" />
   <INPUT type="button" value="priority up" onclick="swapFrontRow('dataTable')" />
   <INPUT type="button" value="priority down" onclick="swapBackRow('dataTable')" />
   <INPUT type="button" value="play continous" onclick="play('dataTable')" />
-  <TABLE id="dataTable" width="400px" border="1">
+  <INPUT type="button" value="save data" onclick="writedata('dataTable')" />
+  <TABLE id="dataTable" width="500px" border="1">
     <TR>
       <TD> </TD>
       <TD> </TD>
