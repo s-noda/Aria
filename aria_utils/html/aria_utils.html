@@ -6,289 +6,288 @@
 <script src="http://cdn.robotwebtools.org/roslibjs/current/roslib.js"></script>
 <script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
 <script>
+  <!-- var ros = new ROSLIB.Ros(); -->
 
-  var ros = new ROSLIB.Ros();
+  <!-- ros.on('error', function(error) { -->
+  <!--   console.log(error); -->
+  <!-- }); -->
 
-  ros.on('error', function(error) {
-    console.log(error);
-  });
+  <!-- ros.on('connection', function() { -->
+  <!--   console.log('Connection made!'); -->
+  <!-- }); -->
 
-  ros.on('connection', function() {
-    console.log('Connection made!');
-  });
+  <!-- ros.on('close', function() { -->
+  <!--   console.log('Connection closed.'); -->
+  <!-- }); -->
 
-  ros.on('close', function() {
-    console.log('Connection closed.');
-  });
+  <!-- ros.connect('ws://localhost:9090'); -->
 
-  ros.connect('ws://localhost:9090');
+  <!-- var motionData = []; -->
 
-  var motionData = [];
+  <!-- var eyePublisher = new ROSLIB.Topic({ -->
+  <!--   ros : ros, -->
+  <!--   name : '/2ndParty/request/eye', -->
+  <!--   messageType : 'std_msgs/Float32MultiArray' -->
+  <!-- }); -->
 
-  var eyePublisher = new ROSLIB.Topic({
-    ros : ros,
-    name : '/2ndParty/request/eye',
-    messageType : 'std_msgs/Float32MultiArray'
-  });
+  <!-- var gripperPublisher = new ROSLIB.Topic({ -->
+  <!--   ros : ros, -->
+  <!--   name : '/2ndParty/request/gripper', -->
+  <!--   messageType : 'std_msgs/Float32MultiArray' -->
+  <!-- }); -->
 
-  var gripperPublisher = new ROSLIB.Topic({
-    ros : ros,
-    name : '/2ndParty/request/gripper',
-    messageType : 'std_msgs/Float32MultiArray'
-  });
+  <!-- var ariaPublisher = new ROSLIB.Topic({ -->
+  <!--   ros : ros, -->
+  <!--   name : '/currentor_socket/request/position_vector', -->
+  <!--   messageType : 'std_msgs/Float32MultiArray' -->
+  <!-- }); -->
 
-  var ariaPublisher = new ROSLIB.Topic({
-    ros : ros,
-    name : '/currentor_socket/request/position_vector',
-    messageType : 'std_msgs/Float32MultiArray'
-  });
+  <!-- var readPublisher = new ROSLIB.Topic({ -->
+  <!--   ros : ros, -->
+  <!--   name : '/aria_web_ui/file_request', -->
+  <!--   messageType : 'std_msgs/String' -->
+  <!-- }); -->
 
-  var readPublisher = new ROSLIB.Topic({
-    ros : ros,
-    name : '/aria_web_ui/file_request',
-    messageType : 'std_msgs/String'
-  });
+  <!-- var writePublisher = new ROSLIB.Topic({ -->
+  <!--   ros : ros, -->
+  <!--   name : '/concatenate_request/stock', -->
+  <!--   messageType : 'std_msgs/Float32MultiArray' -->
+  <!-- }); -->
 
-  var writePublisher = new ROSLIB.Topic({
-    ros : ros,
-    name : '/concatenate_request/stock',
-    messageType : 'std_msgs/Float32MultiArray'
-  });
+  <!-- function sleep(time) { -->
+  <!--   var d1 = new Date().getTime(); -->
+  <!--   var d2 = new Date().getTime(); -->
+  <!--   while (d2 < d1 + time) { -->
+  <!--     d2 = new Date().getTime(); -->
+  <!--   } -->
+  <!--   return; -->
+  <!-- } -->
 
-  function sleep(time) {
-    var d1 = new Date().getTime();
-    var d2 = new Date().getTime();
-    while (d2 < d1 + time) {
-      d2 = new Date().getTime();
-    }
-    return;
-  }
+  <!-- function sendJson(json) { -->
+  <!--   $.ajax({ -->
+  <!--     type : "POST", -->
+  <!--     url : "http://192.168.97.155/", -->
+  <!--     data : JSON.stringify(json), -->
+  <!--     success : function(data, dataType) { -->
+  <!--       console.log(data + "/" + dataType); -->
+  <!--     }, -->
+  <!--     error : function(XMLHttpRequest, textStatus, errorThrown) { -->
+  <!--       console.log(XMLHttpRequest + "/" + textStatus + "/" + errorThrown); -->
+  <!--     } -->
+  <!--   }); -->
+  <!-- } -->
 
-  function sendJson(json) {
-    $.ajax({
-      type : "POST",
-      url : "http://192.168.97.155/",
-      data : JSON.stringify(json),
-      success : function(data, dataType) {
-        console.log(data + "/" + dataType);
-      },
-      error : function(XMLHttpRequest, textStatus, errorThrown) {
-        console.log(XMLHttpRequest + "/" + textStatus + "/" + errorThrown);
-      }
-    });
-  }
+  <!-- function setTime(time) { -->
+  <!--   var set_time = { -->
+  <!--     method : "setTime", -->
+  <!--     params : [parseFloat(time)], -->
+  <!--     id : "1" -->
+  <!--   } -->
+  <!--   console.log(set_time); -->
+  <!--   sendJson(set_time); -->
+  <!--   return false; -->
+  <!-- } -->
 
-  function setTime(time) {
-    var set_time = {
-      method : "setTime",
-      params : [parseFloat(time)],
-      id : "1"
-    }
-    console.log(set_time);
-    sendJson(set_time);
-    return false;
-  }
+  <!-- function play(tableID) { -->
+  <!--   var table = document.getElementById(tableID); -->
+  <!--   var rowCount = table.rows.length; -->
+  <!--   for (var i=1; i< rowCount; i++) { -->
+  <!--     if (table.rows[i].cells[2].childNodes[0].value == "on") { -->
+  <!--       motionData[i-1][motionData[i-1].length-1] = parseFloat(table.rows[i].cells[4].childNodes[0].value); -->
+  <!--       var dat = motionData[i-1] -->
+  <!--       var time_dat = dat[dat.length-1] -->
+  <!--       var aria_dat = dat.slice(0, dat.length-5); -->
+  <!--       var eye_dat = dat.slice(dat.length-2, dat.length-1); -->
+  <!--       eye_dat.push(time_dat); -->
+  <!--       var gripper_dat = dat.slice(dat.length-4, dat.length-3); -->
+  <!--       gripper_dat.push(time_dat); -->
+  <!--       var aria_msg = new ROSLIB.Message({ -->
+  <!--         data : aria_dat -->
+  <!--       }); -->
+  <!--       setTime(time_dat) -->
+  <!--       sleep(100); -->
+  <!--       ariaPublisher.publish(aria_msg); -->
+  <!--       var eye_msg = new ROSLIB.Message({ -->
+  <!-- 	  data : eye_dat -->
+  <!--       }); -->
+  <!--       eyePublisher.publish(eye_msg); -->
+  <!--       var gripper_msg = new ROSLIB.Message({ -->
+  <!--         data : gripper_dat -->
+  <!--       }); -->
+  <!--       gripperPublisher.publish(gripper_msg); -->
+  <!--       sleep(time_dat*1000); -->
+  <!--     } -->
+  <!--   } -->
+  <!-- } -->
 
-  function play(tableID) {
-    var table = document.getElementById(tableID);
-    var rowCount = table.rows.length;
-    for (var i=1; i< rowCount; i++) {
-      if (table.rows[i].cells[2].childNodes[0].value == "on") {
-        motionData[i-1][motionData[i-1].length-1] = parseFloat(table.rows[i].cells[4].childNodes[0].value);
-        var dat = motionData[i-1]
-        var time_dat = dat[dat.length-1]
-        var aria_dat = dat.slice(0, dat.length-5);
-        var eye_dat = dat.slice(dat.length-2, dat.length-1);
-        eye_dat.push(time_dat);
-        var gripper_dat = dat.slice(dat.length-4, dat.length-3);
-        gripper_dat.push(time_dat);
-        var aria_msg = new ROSLIB.Message({
-          data : aria_dat
-        });
-        setTime(time_dat)
-        sleep(100);
-        ariaPublisher.publish(aria_msg);
-        var eye_msg = new ROSLIB.Message({
-	  data : eye_dat
-        });
-        eyePublisher.publish(eye_msg);
-        var gripper_msg = new ROSLIB.Message({
-          data : gripper_dat
-        });
-        gripperPublisher.publish(gripper_msg);
-        sleep(time_dat*1000);
-      }
-    }
-  }
+  <!-- function readdata() { -->
+  <!--   var read_file = new ROSLIB.Message({ -->
+  <!--     data : String($('#filename').val()) -->
+  <!--   }); -->
+  <!--   readPublisher.publish(read_file); -->
+  <!-- } -->
 
-  function readdata() {
-    var read_file = new ROSLIB.Message({
-      data : String($('#filename').val())
-    });
-    readPublisher.publish(read_file);
-  }
+  <!-- function writedata(tableID) { -->
+  <!--   var table = document.getElementById(tableID); -->
+  <!--   var rowCount = table.rows.length; -->
+  <!--   var cdt = new Date(); -->
+  <!--   var datefloat = (cdt.getMonth()+1)*100000000+cdt.getDate()*1000000+cdt.getHours()*10000+cdt.getMinutes()*100+cdt.getSeconds(); -->
+  <!--   var dat = [datefloat ,rowCount-1, motionData[0].length] -->
+  <!--   for (var i=1; i< rowCount; i++) { -->
+  <!--     dat.push.apply(dat, motionData[i-1]); -->
+  <!--   } -->
+  <!--   console.log(dat); -->
+  <!--   var save_pose = new ROSLIB.Message({ -->
+  <!--     data : dat -->
+  <!--   }); -->
+  <!--   writePublisher.publish(save_pose); -->
+  <!--   console.log(datefloat); -->
+  <!-- } -->
 
-  function writedata(tableID) {
-    var table = document.getElementById(tableID);
-    var rowCount = table.rows.length;
-    var cdt = new Date();
-    var datefloat = (cdt.getMonth()+1)*100000000+cdt.getDate()*1000000+cdt.getHours()*10000+cdt.getMinutes()*100+cdt.getSeconds();
-    var dat = [datefloat ,rowCount-1, motionData[0].length]
-    for (var i=1; i< rowCount; i++) {
-      dat.push.apply(dat, motionData[i-1]);
-    }
-    console.log(dat);
-    var save_pose = new ROSLIB.Message({
-      data : dat
-    });
-    writePublisher.publish(save_pose);
-    console.log(datefloat);
-  }
+  <!-- function addRow(tableID, value) { -->
+  <!--   var table = document.getElementById(tableID); -->
+  <!--   var rowCount = table.rows.length; -->
+  <!--   var row = table.insertRow(rowCount); -->
 
-  function addRow(tableID, value) {
-    var table = document.getElementById(tableID);
-    var rowCount = table.rows.length;
-    var row = table.insertRow(rowCount);
+  <!--   var cell1 = row.insertCell(0); -->
+  <!--   var element1 = document.createElement("input"); -->
+  <!--   element1.type = "checkbox"; -->
+  <!--   element1.name = "chkbox[]"; -->
+  <!--   cell1.appendChild(element1); -->
 
-    var cell1 = row.insertCell(0);
-    var element1 = document.createElement("input");
-    element1.type = "checkbox";
-    element1.name = "chkbox[]";
-    cell1.appendChild(element1);
+  <!--   var cell2 = row.insertCell(1); -->
+  <!--   var element2 = document.createElement("input"); -->
+  <!--   element2.type = "text"; -->
+  <!--   element2.value = "pose name"; -->
+  <!--   element2.name = "txtbox[]" -->
+  <!--   cell2.appendChild(element2); -->
 
-    var cell2 = row.insertCell(1);
-    var element2 = document.createElement("input");
-    element2.type = "text";
-    element2.value = "pose name";
-    element2.name = "txtbox[]"
-    cell2.appendChild(element2);
+  <!--   var cell3 = row.insertCell(2); -->
+  <!--   var element3 = document.createElement("input"); -->
+  <!--   element3.type = "button"; -->
+  <!--   element3.value = "on"; -->
+  <!--   element3.name = "btnbox[]"; -->
+  <!--   element3.onclick = function() { -->
+  <!--     console.log("click"); -->
+  <!--     if (element3.value == "on") { -->
+  <!--       element3.value = "off"; -->
+  <!--       cell3.style.textAlign = 'right'; -->
+  <!--     } else { -->
+  <!--       element3.value = "on"; -->
+  <!--       cell3.style.textAlign = 'left'; -->
+  <!--     } -->
+  <!--   }; -->
+  <!--   cell3.appendChild(element3); -->
 
-    var cell3 = row.insertCell(2);
-    var element3 = document.createElement("input");
-    element3.type = "button";
-    element3.value = "on";
-    element3.name = "btnbox[]";
-    element3.onclick = function() {
-      console.log("click");
-      if (element3.value == "on") {
-        element3.value = "off";
-        cell3.style.textAlign = 'right';
-      } else {
-        element3.value = "on";
-        cell3.style.textAlign = 'left';
-      }
-    };
-    cell3.appendChild(element3);
+  <!--   var cell4 = row.insertCell(3); -->
+  <!--   var element4 = document.createElement("input"); -->
+  <!--   element4.type = "button"; -->
+  <!--   element4.value = "play"; -->
+  <!--   element4.name = "btnbox[]"; -->
+  <!--   element4.onclick = function() { -->
+  <!--     var dat = motionData[this.parentNode.parentNode.rowIndex-1] -->
+  <!--     var time_dat = dat[dat.length-1] -->
+  <!--     var aria_dat = dat.slice(0, dat.length-5); -->
+  <!--     var eye_dat = dat.slice(dat.length-2, dat.length-1); -->
+  <!--     eye_dat.push(time_dat) -->
+  <!--     var gripper_dat = dat.slice(dat.length-4, dat.length-3); -->
+  <!--     gripper_dat.push(time_dat) -->
+  <!--     var aria_msg = new ROSLIB.Message({ -->
+  <!--       data : aria_dat -->
+  <!--     }); -->
+  <!--     setTime(time_dat) -->
+  <!--     ariaPublisher.publish(aria_msg); -->
+  <!--     var eye_msg = new ROSLIB.Message({ -->
+  <!-- 	data : eye_dat -->
+  <!--     }); -->
+  <!--     eyePublisher.publish(eye_msg); -->
+  <!--     var gripper_msg = new ROSLIB.Message({ -->
+  <!--       data : gripper_dat -->
+  <!--     }); -->
+  <!--     gripperPublisher.publish(gripper_msg); -->
+  <!--     sleep(time_dat*1000); -->
+  <!--   }; -->
+  <!--   cell4.appendChild(element4); -->
 
-    var cell4 = row.insertCell(3);
-    var element4 = document.createElement("input");
-    element4.type = "button";
-    element4.value = "play";
-    element4.name = "btnbox[]";
-    element4.onclick = function() {
-      var dat = motionData[this.parentNode.parentNode.rowIndex-1]
-      var time_dat = dat[dat.length-1]
-      var aria_dat = dat.slice(0, dat.length-5);
-      var eye_dat = dat.slice(dat.length-2, dat.length-1);
-      eye_dat.push(time_dat)
-      var gripper_dat = dat.slice(dat.length-4, dat.length-3);
-      gripper_dat.push(time_dat)
-      var aria_msg = new ROSLIB.Message({
-        data : aria_dat
-      });
-      setTime(time_dat)
-      ariaPublisher.publish(aria_msg);
-      var eye_msg = new ROSLIB.Message({
-	data : eye_dat
-      });
-      eyePublisher.publish(eye_msg);
-      var gripper_msg = new ROSLIB.Message({
-        data : gripper_dat
-      });
-      gripperPublisher.publish(gripper_msg);
-      sleep(time_dat*1000);
-    };
-    cell4.appendChild(element4);
+  <!--   var cell5 = row.insertCell(4); -->
+  <!--   var element5 = document.createElement("input"); -->
+  <!--   element5.type = "text"; -->
+  <!--   element5.value = "3.0"; -->
+  <!--   element5.name = "txtbox[]"; -->
+  <!--   cell5.appendChild(element5); -->
 
-    var cell5 = row.insertCell(4);
-    var element5 = document.createElement("input");
-    element5.type = "text";
-    element5.value = "3.0";
-    element5.name = "txtbox[]";
-    cell5.appendChild(element5);
+  <!--   motionData.push(value); -->
+  <!--   console.log(motionData); -->
+  <!-- } -->
 
-    motionData.push(value);
-    console.log(motionData);
-  }
+  <!-- var motionDataServer = new ROSLIB.Topic({ -->
+  <!--   ros : ros, -->
+  <!--   name : '/concatenate_request/flow', -->
+  <!--   MessageType : 'std_msgs/Float32MultiArray' -->
+  <!-- }); -->
 
-  var motionDataServer = new ROSLIB.Topic({
-    ros : ros,
-    name : '/concatenate_request/flow',
-    MessageType : 'std_msgs/Float32MultiArray'
-  });
+  <!-- motionDataServer.subscribe(function(message) { -->
+  <!--   addRow('dataTable', message.data); -->
+  <!-- }); -->
 
-  motionDataServer.subscribe(function(message) {
-    addRow('dataTable', message.data);
-  });
+  <!-- function deleteRow(tableID) { -->
+  <!--   try { -->
+  <!--     var table = document.getElementById(tableID); -->
+  <!--     var rowCount = table.rows.length; -->
+  <!--     for (var i=0; i< rowCount; i++) { -->
+  <!--       var row = table.rows[i]; -->
+  <!--       var chkbox = row.cells[0].childNodes[0]; -->
+  <!--       if(null != chkbox && true == chkbox.checked) { -->
+  <!--         table.deleteRow(i); -->
+  <!--         motionData.splice(i-1,1); -->
+  <!--         rowCount--; -->
+  <!--         i--; -->
+  <!--       } -->
+  <!--     } -->
+  <!--     console.log(motionData); -->
+  <!--   }catch(e) { -->
+  <!--     alert(e); -->
+  <!--   } -->
+  <!-- } -->
 
-  function deleteRow(tableID) {
-    try {
-      var table = document.getElementById(tableID);
-      var rowCount = table.rows.length;
-      for (var i=0; i< rowCount; i++) {
-        var row = table.rows[i];
-        var chkbox = row.cells[0].childNodes[0];
-        if(null != chkbox && true == chkbox.checked) {
-          table.deleteRow(i);
-          motionData.splice(i-1,1);
-          rowCount--;
-          i--;
-        }
-      }
-      console.log(motionData);
-    }catch(e) {
-      alert(e);
-    }
-  }
+  <!-- function swapFrontRow(tableID) { -->
+  <!--   var table = document.getElementById(tableID); -->
+  <!--   var rowCount = table.rows.length; -->
+  <!--   for(var i=2; i< rowCount; i++) { -->
+  <!--     var row = table.rows[i]; -->
+  <!--     var chkbox = row.cells[0].childNodes[0]; -->
+  <!--     if(null != chkbox && true == chkbox.checked) { -->
+  <!--       sibling = row.previousElementSibling, -->
+  <!--       parent = row.parentNode; -->
+  <!--       parent.insertBefore(row, sibling); -->
+  <!--       j = i-1; -->
+  <!--       motionData.splice(j-1, 2, motionData[j], motionData[j-1]); -->
+  <!--       console.log(motionData); -->
+  <!--       return; -->
+  <!--     } -->
+  <!--   } -->
+  <!-- } -->
 
-  function swapFrontRow(tableID) {
-    var table = document.getElementById(tableID);
-    var rowCount = table.rows.length;
-    for(var i=2; i< rowCount; i++) {
-      var row = table.rows[i];
-      var chkbox = row.cells[0].childNodes[0];
-      if(null != chkbox && true == chkbox.checked) {
-        sibling = row.previousElementSibling,
-        parent = row.parentNode;
-        parent.insertBefore(row, sibling);
-        j = i-1;
-        motionData.splice(j-1, 2, motionData[j], motionData[j-1]);
-        console.log(motionData);
-        return;
-      }
-    }
-  }
-
-  function swapBackRow(tableID) {
-    var table = document.getElementById(tableID);
-    var rowCount = table.rows.length - 1;
-    for(var i=1; i< rowCount; i++) {
-      var row = table.rows[i];
-      var chkbox = row.cells[0].childNodes[0];
-      if(null != chkbox && true == chkbox.checked) {
-        sibling = row.nextElementSibling,
-        parent = row.parentNode;
-        parent.insertBefore(sibling, row);
-        j = i-1;
-        motionData.splice(j, 2, motionData[j+1], motionData[j])
-        console.log(motionData);
-        return;
-      }
-    }
-  }
-
-
+  <!-- function swapBackRow(tableID) { -->
+  <!--   var table = document.getElementById(tableID); -->
+  <!--   var rowCount = table.rows.length - 1; -->
+  <!--   for(var i=1; i< rowCount; i++) { -->
+  <!--     var row = table.rows[i]; -->
+  <!--     var chkbox = row.cells[0].childNodes[0]; -->
+  <!--     if(null != chkbox && true == chkbox.checked) { -->
+  <!--       sibling = row.nextElementSibling, -->
+  <!--       parent = row.parentNode; -->
+  <!--       parent.insertBefore(sibling, row); -->
+  <!--       j = i-1; -->
+  <!--       motionData.splice(j, 2, motionData[j+1], motionData[j]) -->
+  <!--       console.log(motionData); -->
+  <!--       return; -->
+  <!--     } -->
+  <!--   } -->
+  <!-- } -->
 </script>
+<script src="aria_utils.js"></script>
+
 </head>
 
 <body>
@@ -319,7 +318,10 @@
   <INPUT type="button" value="delete" onclick="deleteRow('dataTable')" />
   <INPUT type="button" value="priority up" onclick="swapFrontRow('dataTable')" />
   <INPUT type="button" value="priority down" onclick="swapBackRow('dataTable')" />
-  <INPUT type="button" value="play continous" onclick="play('dataTable')" />
+  <INPUT type="button" value="play continous"
+  onclick="play('dataTable')" />
+  <INPUT type="button" value="play random"
+	 onclick="play_random('dataTable')" />
   <INPUT type="button" value="save data" onclick="writedata('dataTable')" />
   <TABLE id="dataTable" width="500px" border="1">
     <TR>

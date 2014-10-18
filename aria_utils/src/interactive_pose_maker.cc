@@ -139,6 +139,8 @@ InteractivePoseMaker::InteractivePoseMaker(ros::NodeHandle &nh) :
     = boost::shared_ptr<mdl::GripperModel>(new mdl::GripperModel(nh));
   eye_model_
     = boost::shared_ptr<mdl::QuadOEyeModel>(new mdl::QuadOEyeModel(nh));
+  // get goal position
+  setFeedback(2);
 }
 
 void InteractivePoseMaker::Main()
@@ -273,9 +275,9 @@ void InteractivePoseMaker::
 ActionSavePose(const sensor_msgs::Joy::ConstPtr& joy)
 {
   std_msgs::Float32MultiArray msg;
-  int data_size = c_.position.size();
+  int data_size = c_.debug.size();
   msg.data.resize(data_size);
-  msg.data = c_.position;
+  msg.data = c_.debug;
   msg.data.resize(data_size+5);
   msg.data.at(data_size) = gripper_.left;
   msg.data.at(data_size+1) = gripper_.right;
