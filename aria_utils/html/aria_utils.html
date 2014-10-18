@@ -31,6 +31,12 @@
     messageType : 'std_msgs/Float32MultiArray'
   });
 
+  var gripperPublisher = new ROSLIB.Topic({
+    ros : ros,
+    name : '/2ndParty/request/gripper',
+    messageType : 'std_msgs/Float32MultiArray'
+  });
+
   var ariaPublisher = new ROSLIB.Topic({
     ros : ros,
     name : '/currentor_socket/request/position_vector',
@@ -75,9 +81,10 @@
   function setTime(time) {
     var set_time = {
       method : "setTime",
-      params : [time],
+      params : [parseFloat(time)],
       id : "1"
     }
+    console.log(set_time);
     sendJson(set_time);
     return false;
   }
@@ -87,21 +94,28 @@
     var rowCount = table.rows.length;
     for (var i=1; i< rowCount; i++) {
       if (table.rows[i].cells[2].childNodes[0].value == "on") {
+        motionData[i-1][motionData[i-1].length-1] = parseFloat(table.rows[i].cells[4].childNodes[0].value);
         var dat = motionData[i-1]
-        motionData[i-1][dat.length-1] = table.rows[i].cells[4].childNodes[0].value;
         var time_dat = dat[dat.length-1]
-        var aria_dat = dat.slice(0, dat.length-4);
-        var eye_dat = dat.slice(dat.length-3, dat.length-2);
-        eye_dat.push(time_dat)
+        var aria_dat = dat.slice(0, dat.length-5);
+        var eye_dat = dat.slice(dat.length-2, dat.length-1);
+        eye_dat.push(time_dat);
+        var gripper_dat = dat.slice(dat.length-4, dat.length-3);
+        gripper_dat.push(time_dat);
         var aria_msg = new ROSLIB.Message({
           data : aria_dat
         });
         setTime(time_dat)
+        sleep(100);
         ariaPublisher.publish(aria_msg);
         var eye_msg = new ROSLIB.Message({
 	  data : eye_dat
         });
         eyePublisher.publish(eye_msg);
+        var gripper_msg = new ROSLIB.Message({
+          data : gripper_dat
+        });
+        gripperPublisher.publish(gripper_msg);
         sleep(time_dat*1000);
       }
     }
@@ -109,7 +123,7 @@
 
   function readdata() {
     var read_file = new ROSLIB.Message({
-      data : parseString($('#filename').val())
+      data : String($('#filename').val())
     });
     readPublisher.publish(read_file);
   }
@@ -118,11 +132,12 @@
     var table = document.getElementById(tableID);
     var rowCount = table.rows.length;
     var cdt = new Date();
-    var datefloat = cdt.getFullYear()*10000000000+(cdt.getMonth()+1)*100000000+cdt.getDate()*1000000+cdt.getHours()*10000+cdt.getMinutes()*100+cdt.getSeconds();
-    var dat = [datefloat ,rowCount, motionData[0].length]
+    var datefloat = (cdt.getMonth()+1)*100000000+cdt.getDate()*1000000+cdt.getHours()*10000+cdt.getMinutes()*100+cdt.getSeconds();
+    var dat = [datefloat ,rowCount-1, motionData[0].length]
     for (var i=1; i< rowCount; i++) {
       dat.push.apply(dat, motionData[i-1]);
     }
+    console.log(dat);
     var save_pose = new ROSLIB.Message({
       data : dat
     });
@@ -173,9 +188,11 @@
     element4.onclick = function() {
       var dat = motionData[this.parentNode.parentNode.rowIndex-1]
       var time_dat = dat[dat.length-1]
-      var aria_dat = dat.slice(0, dat.length-4);
-      var eye_dat = dat.slice(dat.length-3, dat.length-2);
+      var aria_dat = dat.slice(0, dat.length-5);
+      var eye_dat = dat.slice(dat.length-2, dat.length-1);
       eye_dat.push(time_dat)
+      var gripper_dat = dat.slice(dat.length-4, dat.length-3);
+      gripper_dat.push(time_dat)
       var aria_msg = new ROSLIB.Message({
         data : aria_dat
       });
@@ -185,6 +202,10 @@
 	data : eye_dat
       });
       eyePublisher.publish(eye_msg);
+      var gripper_msg = new ROSLIB.Message({
+        data : gripper_dat
+      });
+      gripperPublisher.publish(gripper_msg);
       sleep(time_dat*1000);
     };
     cell4.appendChild(element4);

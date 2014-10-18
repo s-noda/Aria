@@ -194,6 +194,13 @@ Read(const std_msgs::String::ConstPtr& msg)
       for (int j=0; j<joints; ++j) {
 	ss >> pose_[i].at(j);
       }
+      i++;
+    }
+    for (int i=0; i<pose_.size(); ++i) {
+      std_msgs::Float32MultiArray msg;
+      msg.data.resize(pose_[i].size());
+      msg.data = pose_[i];
+      publisher_.publish(msg);
     }
   }
 }
@@ -205,7 +212,7 @@ Write(const std_msgs::Float32MultiArray::ConstPtr& msg)
   std::vector<float> data;
   data.resize(msg->data[1]);
   float joints = msg->data[2];
-  myfile.open(ofToString(msg->data[0]).c_str());
+  myfile.open(ofToString(static_cast<int>(msg->data[0])).c_str());
   myfile << msg->data[1] << " " << msg->data[2] << "\n";
   for (int i=0; i<data.size(); ++i) {
     for (int j=0; j<joints; ++j)
@@ -213,6 +220,7 @@ Write(const std_msgs::Float32MultiArray::ConstPtr& msg)
     myfile << "\n";
   }
   myfile.close();
+  ROS_WARN("saved data %s",ofToString(static_cast<int>(msg->data[0])).c_str());
 }
 
 
