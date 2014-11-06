@@ -18,8 +18,13 @@ include_directories(
  )
 
 add_executable(state_publisher src/state_publisher.cc)
+add_executable(virtual_state_publisher src/virtual_state_publisher.cc)
 
 target_link_libraries(state_publisher
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(virtual_state_publisher
   ${catkin_LIBRARIES}
 )
 
