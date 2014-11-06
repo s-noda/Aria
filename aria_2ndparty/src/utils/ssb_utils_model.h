@@ -4,6 +4,7 @@
 #include "ssb_common_common.h"
 #include "ssb_actuators_kduinoservo.h"
 #include "ssb_actuators_dynamixel.h"
+#include "ssb_actuators_virtual.h"
 #include "ssb_sensors_voice.h"
 
 namespace ssb_utils_model {
@@ -72,6 +73,23 @@ class QuadOEyeModel : public Model<ssb_common_vec::VecEye,
 };
 
 
+class VirtualQuadOEyeModel : public Model<ssb_common_vec::VecEye,
+                                          ssb_common_vec::VecQuadOEye,
+                                          ssb_actuators_virtual::VirtualQuadOEyeObject> {
+ public:
+  explicit VirtualQuadOEyeModel(ros::NodeHandle &nh) : Model(nh) {
+    setParams(ssb_common_enum::DEBUG);
+  };
+  ~VirtualQuadOEyeModel() {};
+  void setParams(ssb_common_enum::Config settings);
+  void Input2Output();
+  ssb_common_vec::VecEye getHomeAsInput();
+ private:
+  ssb_common_vec::VecQuadOEye k_input2output4positive_input_;
+  ssb_common_vec::VecQuadOEye k_input2output4negative_input_;
+};
+
+
 class GripperModel : public Model<ssb_common_vec::VecGripper,
                                   ssb_common_vec::VecGripper,
                                   ssb_actuators_dynamixel::GripperDynamixel> {
@@ -80,6 +98,22 @@ class GripperModel : public Model<ssb_common_vec::VecGripper,
     setParams(ssb_common_enum::DEBUG);
   };
   ~GripperModel() {};
+  void setParams(ssb_common_enum::Config settings);
+  void Input2Output();
+  ssb_common_vec::VecGripper getHomeAsInput();
+ private:
+  ssb_common_vec::VecGripper k_input2output_;
+};
+
+
+class VirtualGripperModel : public Model<ssb_common_vec::VecGripper,
+                                         ssb_common_vec::VecGripper,
+                                         ssb_actuators_virtual::VirtualGripperObject> {
+ public:
+  explicit VirtualGripperModel(ros::NodeHandle &nh) : Model(nh) {
+    setParams(ssb_common_enum::DEBUG);
+  };
+  ~VirtualGripperModel() {};
   void setParams(ssb_common_enum::Config settings);
   void Input2Output();
   ssb_common_vec::VecGripper getHomeAsInput();

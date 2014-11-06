@@ -34,6 +34,13 @@ private:
   ros::Subscriber eye_subscriber_;
   ros::Subscriber tentacle_subscriber_;
   int _fps_;
+  // for virtual models
+  boost::shared_ptr<mdl::VirtualGripperModel> virtual_gripper_model_;
+  boost::shared_ptr<mdl::VirtualQuadOEyeModel> virtual_eye_model_;
+  boost::shared_ptr<key::KeyFramePlayer
+		    <vec::VecGripper, mdl::VirtualGripperModel> > virtual_gripper_player_;
+  boost::shared_ptr<key::KeyFramePlayer
+		    <vec::VecEye, mdl::VirtualQuadOEyeModel> > virtual_eye_player_;
 };
 
 
@@ -90,6 +97,19 @@ SecondPartyCore::SecondPartyCore(ros::NodeHandle &nh)
                       vec::VecInterpolation(1, tmp));
   tentacle_key_.push_back(tentacle_frame);
   tentacle_key_.push_back(tentacle_frame1);
+  // virtual init
+  virtual_gripper_model_
+    = boost::shared_ptr<mdl::VirtualGripperModel>(new mdl::VirtualGripperModel(nh));
+  virtual_eye_model_
+    = boost::shared_ptr<mdl::VirtualQuadOEyeModel>(new mdl::VirtualQuadOEyeModel(nh));
+  virtual_gripper_player_ = boost::shared_ptr<key::KeyFramePlayer
+                                      <vec::VecGripper, mdl::VirtualGripperModel> >
+      (new key::KeyFramePlayer<vec::VecGripper, mdl::VirtualGripperModel>
+       ("virtual_gripper", gripper_key_, *virtual_gripper_model_, _fps_));
+  virtual_eye_player_ = boost::shared_ptr<key::KeyFramePlayer
+                                  <vec::VecEye, mdl::VirtualQuadOEyeModel> >
+      (new key::KeyFramePlayer<vec::VecEye, mdl::VirtualQuadOEyeModel>
+       ("virtual_eye", eye_key_, *virtual_eye_model_, _fps_));
 }
 
 void SecondPartyCore::Main()
@@ -97,6 +117,9 @@ void SecondPartyCore::Main()
   gripper_player_->OnPlay();
   eye_player_->OnPlay();
   tentacle_player_->OnPlay();
+  // play virtual model
+  virtual_gripper_player_->OnPlay();
+  virtual_eye_player_->OnPlay();
 }
 
 int SecondPartyCore::getFPS()
@@ -123,6 +146,9 @@ void SecondPartyCore::GripperInterpolation(const std_msgs::Float32MultiArray::Co
   // Start motion.
   gripper_player_->Setup();
   gripper_player_->StartPlay();
+  // Start virtual model motion.
+  virtual_gripper_player_->Setup();
+  virtual_gripper_player_->StartPlay();
 }
 
 void SecondPartyCore::EyeInterpolation(const std_msgs::Float32MultiArray::ConstPtr& req)
@@ -144,6 +170,9 @@ void SecondPartyCore::EyeInterpolation(const std_msgs::Float32MultiArray::ConstP
   // Start motion.
   eye_player_->Setup();
   eye_player_->StartPlay();
+  // Start virtual model motion.
+  virtual_eye_player_->Setup();
+  virtual_eye_player_->StartPlay();
 }
 
 void SecondPartyCore::TentacleInterpolation(const std_msgs::Float32MultiArray::ConstPtr &req)
