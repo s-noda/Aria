@@ -25,7 +25,7 @@ private:
 AriaToJointState::AriaToJointState(ros::NodeHandle nh) {
   nh_ = nh;
   joint_state_publisher_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
-  currentor_subscriber_ = nh_.subscribe("/currentor_socket/request/position_vector", 1, &AriaToJointState::SensorCallback, this);
+  currentor_subscriber_ = nh_.subscribe("/currentor_socket/virtual_array/position", 1, &AriaToJointState::SensorCallback, this);
   gripper_subscriber_ = nh_.subscribe("/2ndparty/virtual_array/gripper", 1, &AriaToJointState::GripperCallback, this);
   eye_subscriber_ = nh_.subscribe("/2ndparty/virtual_array/eye", 1, &AriaToJointState::EyeCallback, this);
   Init();

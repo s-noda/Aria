@@ -83,6 +83,20 @@ struct VecGripper {
   float right;
 };
 
+
+struct VecBody {
+  VecBody();
+  VecBody(const int init_size);
+  VecBody(const std::vector<float> init_joints);
+  VecBody(const VecBody &obj);
+  VecBody& operator=(const VecBody &obj);
+  VecBody& operator+=(const VecBody &obj);
+  VecBody& operator-=(const VecBody &obj);
+  VecBody& operator/=(const float kGain);
+  VecBody& operator*=(const float kGain);
+  std::vector<float> joints;
+};
+
 struct VecTime {
   VecTime();
   VecTime(const float init_start_time, const float init_play_time);

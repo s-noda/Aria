@@ -36,7 +36,13 @@ include_directories(
 
 add_executable(interactive_pose_maker src/interactive_pose_maker.cc ../aria_2ndparty/src/common/ssb_common_of.cc ../aria_2ndparty/src/common/ssb_common_vec.cc ../aria_2ndparty/src/utils/ssb_utils_model.cc)
 
+add_executable(virtual_mcu_core src/virtual_mcu_core.cc ../aria_2ndparty/src/common/ssb_common_of.cc ../aria_2ndparty/src/common/ssb_common_vec.cc ../aria_2ndparty/src/utils/ssb_utils_model.cc ../aria_2ndparty/src/utils/ssb_utils_interpolation.cc)
+
 target_link_libraries(interactive_pose_maker
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(virtual_mcu_core
   ${catkin_LIBRARIES}
 )
 

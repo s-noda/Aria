@@ -218,6 +218,69 @@ VecGripper& VecGripper::operator*=(const float kGain) {
 
 //---------------------------------------------------------------
 
+VecBody::VecBody() {
+  joints.resize(30);
+  for (int i = 0; i < joints.size(); ++i)
+    joints[i] = 0;
+}
+
+VecBody::VecBody(const int init_size) {
+  joints.resize(init_size);
+  for (int i = 0; i < joints.size(); ++i)
+    joints[i] = 0;
+}
+
+VecBody::VecBody(const std::vector<float> init_joints) {
+  joints.resize(init_joints.size());
+  for (int i = 0; i < joints.size(); ++i)
+    joints[i] = init_joints.at(i);
+}
+
+VecBody::VecBody(const VecBody &obj) {
+  if (joints.size() < obj.joints.size())
+    joints.resize(obj.joints.size());
+  for (int i = 0; i < obj.joints.size(); ++i)
+    joints[i] = obj.joints.at(i);
+}
+
+VecBody& VecBody::operator=(const VecBody &obj) {
+  if (joints.size() < obj.joints.size())
+    joints.resize(obj.joints.size());
+  for (int i = 0; i < obj.joints.size(); ++i)
+    joints[i] = obj.joints.at(i);
+  return *this;
+}
+
+VecBody& VecBody::operator+=(const VecBody &obj) {
+  if (joints.size() < obj.joints.size())
+    joints.resize(obj.joints.size());
+  for (int i = 0; i < obj.joints.size(); ++i)
+    joints[i] += obj.joints.at(i);
+  return *this;
+}
+
+VecBody& VecBody::operator-=(const VecBody &obj) {
+  if (joints.size() < obj.joints.size())
+    joints.resize(obj.joints.size());
+  for (int i = 0; i < obj.joints.size(); ++i)
+    joints[i] -= obj.joints.at(i);
+  return *this;
+}
+
+VecBody& VecBody::operator/=(float kGain) {
+  for (int i = 0; i < joints.size(); ++i)
+    joints[i] /= kGain;
+  return *this;
+}
+
+VecBody& VecBody::operator*=(float kGain) {
+  for (int i = 0; i < joints.size(); ++i)
+    joints[i] *= kGain;
+  return *this;
+}
+
+//---------------------------------------------------------------
+
 VecTime::VecTime() {
   start_time = 0;
   play_time = 0;

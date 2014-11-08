@@ -226,5 +226,4 @@ ssb_common_vec::VecGripper VirtualGripperModel::getHomeAsInput() {
   return ssb_common_vec::VecGripper(0, 0);
 }
 
-
 } // namespace ssb_utils_model

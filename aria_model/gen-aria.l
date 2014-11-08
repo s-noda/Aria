@@ -265,7 +265,7 @@
     ;; ssb
     (format out "~A~%"
 	    "<joint name=\"eye_r_hori\" type=\"revolute\">
-    <origin rpy=\"0.05 -0.419 -0.189\" xyz=\"0 0 0\"/>
+    <origin rpy=\"0.05 -0.419 -0.189\" xyz=\"0.0076 0.0112 0.0065\"/>
     <axis xyz=\"0 1 0\"/>
     <parent link=\"neck3_link\"/>
     <child link=\"eyer_link\"/>
@@ -312,14 +312,14 @@
       </geometry>
     </visual>
     <collision>
-      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
       <geometry>
-        <box size=\"0 0 0\"/>
+        <mesh filename=\"package://aria_model/dae/aria_eye.dae\" size=\"1 1 1\"/>
       </geometry>
     </collision>
   </link>
 <joint name=\"eye_l_hori\" type=\"revolute\">
-    <origin rpy=\"-0.05 0.419 -0.189\" xyz=\"0 0 0\"/>
+    <origin rpy=\"-0.05 0.419 -0.189\" xyz=\"0.0076 0.0112 0.0065\"/>
     <axis xyz=\"0 1 0\"/>
     <parent link=\"neck3_link\"/>
     <child link=\"eyel_link\"/>
@@ -366,9 +366,34 @@
       </geometry>
     </visual>
     <collision>
-      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
       <geometry>
-        <box size=\"0 0 0\"/>
+        <mesh filename=\"package://aria_model/dae/aria_eye.dae\" size=\"1 1 1\"/>
+      </geometry>
+    </collision>
+  </link>")
+    (format out "~A~%"
+	    "<joint name=\"head_joint\" type=\"fixed\">
+    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>
+    <parent link=\"neck3_link\"/>
+    <child link=\"head_link\"/>
+  </joint>
+<link name=\"head_link\">
+    <inertial>
+      <mass value=\"0.0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>
+    </inertial>
+    <visual>
+      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
+      <geometry>
+        <mesh filename=\"package://aria_model/dae/aria_head_simple.dae\" scale=\"1.0 1.0 1.0\" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0 0 0"/>
       </geometry>
     </collision>
   </link>")

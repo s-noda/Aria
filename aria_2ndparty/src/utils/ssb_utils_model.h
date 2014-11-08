@@ -6,6 +6,7 @@
 #include "ssb_actuators_dynamixel.h"
 #include "ssb_actuators_virtual.h"
 #include "ssb_sensors_voice.h"
+#include "virtual_aria.h"
 
 namespace ssb_utils_model {
   
@@ -121,6 +122,19 @@ class VirtualGripperModel : public Model<ssb_common_vec::VecGripper,
   ssb_common_vec::VecGripper k_input2output_;
 };
 
+
+class VirtualAriaModel : public Model<ssb_common_vec::VecBody,
+                                      ssb_common_vec::VecBody,
+                                      aria::VirtualAria> {
+ public:
+  explicit VirtualAriaModel(ros::NodeHandle &nh) : Model(nh) {
+    setParams(ssb_common_enum::DEBUG);
+  };
+  ~VirtualAriaModel() {};
+  void setParams(ssb_common_enum::Config settings) {};
+  void Input2Output() { output_ = input_; };
+  ssb_common_vec::VecBody getHomeAsInput() { return ssb_common_vec::VecBody(30); };
+};
 
 class VoiceModel : public Model<ssb_common_vec::VecVoice,
                                 ssb_common_vec::VecVoice,
