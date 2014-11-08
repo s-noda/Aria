@@ -35,6 +35,7 @@ private:
   ros::Subscriber psensor_subscriber_;
   int _fps_;
   float set_time_;
+  vec::VecInterpolation set_interpolation_;
   aria::currenter sensor_;
 };
 
@@ -74,6 +75,7 @@ VirtualMCUCore::VirtualMCUCore(ros::NodeHandle &nh) {
     aria_frame1(vec::VecBody(30), vec::VecTime(0,0), vec::VecInterpolation(1, tmp));
   aria_key_.push_back(aria_frame);
   aria_key_.push_back(aria_frame1);
+  set_interpolation_ = vec::VecInterpolation(1, tmp);
 }
 
 void VirtualMCUCore::Main() {
@@ -90,6 +92,7 @@ void VirtualMCUCore::setGoal(std::vector<float> goal) {
   if (aria_key_.size() > 1) {
     key::KeyFrame<vec::VecBody> tmp_frame(aria_key_.at(1));
     tmp_frame.set_time_data(vec::VecTime(0, 0));
+    tmp_frame.set_interpolation_data(set_interpolation_);
     aria_key_.clear();
     aria_key_.push_back(tmp_frame);
   }
@@ -118,9 +121,13 @@ void VirtualMCUCore::JsonRequestCallback(const std_msgs::String& data) {
     token = strtok(NULL, "[,]");
   }
   if (method.get() == "setTime") {
+    if (params.size() < 1)
+      return;
     set_time_ = params.at(0);
   }
   if (method.get() == "setPosition") {
+    if (params.size() < 2)
+      return;
     std::vector<float> dat;
     dat.resize(sensor_.position.size());
     dat = sensor_.position;
@@ -128,11 +135,75 @@ void VirtualMCUCore::JsonRequestCallback(const std_msgs::String& data) {
     setGoal(dat);
   }
   if (method.get() == "setTorque") {
+    if (params.size() < 2)
+      return;
     std::vector<float> dat;
     dat.resize(sensor_.torque.size());
     dat = sensor_.torque;
     dat[params.at(0)] = params.at(1);
     setGoal(dat);
+  }
+  if (method.get() == "setInterpolation") {
+    if (params.size() < 1)
+      return;
+    set_interpolation_.type = params.at(0);
+    switch(set_interpolation_.type) {
+    case 2 :
+      //if (params.size() < 2)
+      //	return;
+      set_interpolation_.p.clear();
+      set_interpolation_.p.resize(3);
+      set_interpolation_.p[0] = ofVec2f(0.0, 0.0);
+      set_interpolation_.p[1] = ofVec2f(0.0, 1.0);//ofVec2f(0.0, params.at(1));
+      set_interpolation_.p[2] = ofVec2f(1.0, 1.0);
+      break;
+    case 3 :
+      //if (params.size() < 3)
+      //	return;
+      set_interpolation_.p.clear();
+      set_interpolation_.p.resize(4);
+      set_interpolation_.p[0] = ofVec2f(0.0, 0.0);
+      set_interpolation_.p[1] = ofVec2f(0.5, 0.8);//ofVec2f(params.at(1), params.at(2));
+      set_interpolation_.p[2] = ofVec2f(0.5/0.8, 1.0);//ofVec2f(params.at(1)/params.at(2), 1.0);
+      set_interpolation_.p[3] = ofVec2f(1.0, 1.0);
+    case 4 :
+      //if (params.size() < 3)
+      //	return;
+      set_interpolation_.p.clear();
+      set_interpolation_.p.resize(4);
+      set_interpolation_.p[0] = ofVec2f(0.0, 0.0);
+      set_interpolation_.p[1] = ofVec2f(0.3/0.8, 0.0);//ofVec2f((params.at(1)-params.at(2))/(1-params.at(2)), 0.0);
+      set_interpolation_.p[2] = ofVec2f(0.5, 0.2);//ofVec2f(params.at(1), params.at(2));
+      set_interpolation_.p[3] = ofVec2f(1.0, 1.0);
+      break;
+    case 5 :
+      //if (params.size() < 4)
+      //	return;
+      set_interpolation_.p.clear();
+      set_interpolation_.p.resize(6);
+      set_interpolation_.p[0] = ofVec2f(0.0, 0.0);
+      set_interpolation_.p[1] = ofVec2f(0.01/0.6, 0.0);//ofVec2f((params.at(1)*params.at(4)-params.at(3)*params.at(2))/(params.at(4)-params.at(2)),0.0);
+      set_interpolation_.p[2] = ofVec2f(0.3, 0.2);//ofVec2f(params.at(1), params.at(2));
+      set_interpolation_.p[3] = ofVec2f(0.7, 0.8);//ofVec2f(params.at(3), params.at(4));
+      set_interpolation_.p[4] = ofVec2f(0.05/0.6, 1.0);//ofVec2f((params.at(3)*(1-params.at(2))-params.at(1)*(1-params.at(4)))/(params.at(4)-params.at(2)),1.0);
+      set_interpolation_.p[5] = ofVec2f(1.0, 1.0);
+      break;
+    case 6 :
+      //if (params.size() < 3)
+      //	return;
+      set_interpolation_.p.clear();
+      set_interpolation_.p.resize(4);
+      set_interpolation_.p[0] = ofVec2f(0.0, 0.0);
+      set_interpolation_.p[1] = ofVec2f(0.0, 0.5);//ofVec2f(0.0, params.at(1));
+      set_interpolation_.p[2] = ofVec2f(1.0, 0.5);//ofVec2f(1.0, params.at(2));
+      set_interpolation_.p[3] = ofVec2f(1.0, 1.0);
+      break;
+    default:
+      set_interpolation_.p.clear();
+      set_interpolation_.p.resize(1);
+      set_interpolation_.p[0] = ofVec2f(0.0, 0.0);
+      break;
+    }
   }
 }
 
