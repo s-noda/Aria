@@ -1,0 +1,20 @@
+#!/bin/bash
+template() {
+  linear=1.0
+  bezier=2.0
+  slowout=3.0
+  slowin=4.0
+  sigmoid=5.0
+  cubic=6.0
+
+  gt1=1.0
+  gt2=0.8
+
+  rosrun aria_utils aria pub setInterpolation $sigmoid
+  rosrun aria_utils aria pub position [0.0,0.0,0.5026548504829407,0.0,0.0,1.2566370964050293,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,$gt1] &
+  rosrun aria_utils aria pub setInterpolation $slowin
+  rosrun aria_utils aria pub position [0.0,0.0,1.884955644607544,0.0,0.0,0.41887903213500977,0.0,-0.6702064275741577,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,$gt2]
+  sleep $gt2
+}
+
+template

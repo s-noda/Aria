@@ -1,0 +1,17 @@
+#!/bin/bash
+template() {
+  linear=1.0
+  bezier=2.0
+  slowout=3.0
+  slowin=4.0
+  sigmoid=5.0
+  cubic=6.0
+
+  gt=1.0
+
+  rosrun aria_utils aria pub setInterpolation $linear
+  rosrun aria_utils aria pub position 
+  sleep $gt
+}
+
+template
