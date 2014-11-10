@@ -129,9 +129,9 @@ void VirtualQuadOEyeModel::setParams(ssb_common_enum::Config settings) {
   min_limit_input_ = min_input_settings;
   ssb_common_vec::VecEye max_input_settings(1.0, 1.0);
   max_limit_input_ = max_input_settings;
-  ssb_common_vec::VecQuadOEye min_output_settings(-0.175, -0.175, -0.175, -0.175);
+  ssb_common_vec::VecQuadOEye min_output_settings(-0.13, -0.13, -0.13, -0.13);
   min_limit_output_ = min_output_settings;
-  ssb_common_vec::VecQuadOEye max_output_settings(0.175, 0.175, 0.175, 0.175);
+  ssb_common_vec::VecQuadOEye max_output_settings(0.13, 0.13, 0.13, 0.13);
   max_limit_output_ = max_output_settings;
   ssb_common_vec::VecQuadOEye home_output_settings(0.0, 0.0, 0.0, 0.0);
   home_output_ = home_output_settings;
