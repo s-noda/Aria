@@ -265,7 +265,7 @@
     ;; ssb
     (format out "~A~%"
 	    "<joint name=\"eye_r_hori\" type=\"revolute\">
-    <origin rpy=\"0.05 -0.419 -0.189\" xyz=\"0.0076 0.0112 0.0065\"/>
+    <origin rpy=\"0.05 -0.419 -0.189\" xyz=\"0.0 0.0762 0.0065\"/>
     <axis xyz=\"0 1 0\"/>
     <parent link=\"neck3_link\"/>
     <child link=\"eyer_link\"/>
@@ -306,20 +306,20 @@
       <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>
     </inertial>
     <visual>
-      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
       <geometry>
-        <box size=\"0.1 0.1 0.1\"/>
+        <mesh filename=\"package://aria_model/dae/aria_eye.dae\" scale=\"1 1 1\"/>
       </geometry>
     </visual>
     <collision>
-      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
       <geometry>
-        <mesh filename=\"package://aria_model/dae/aria_eye.dae\" size=\"1 1 1\"/>
+        <box size=\"0 0 0\"/>
       </geometry>
     </collision>
   </link>
 <joint name=\"eye_l_hori\" type=\"revolute\">
-    <origin rpy=\"-0.05 0.419 -0.189\" xyz=\"0.0076 0.0112 0.0065\"/>
+    <origin rpy=\"-0.05 0.419 -0.189\" xyz=\"0.0 0.0762 -0.0065\"/>
     <axis xyz=\"0 1 0\"/>
     <parent link=\"neck3_link\"/>
     <child link=\"eyel_link\"/>
@@ -360,15 +360,15 @@
       <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>
     </inertial>
     <visual>
-      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
       <geometry>
-        <box size=\"0.1 0.1 0.1\"/>
+        <mesh filename=\"package://aria_model/dae/aria_eye.dae\" scale=\"1 1 1\"/>
       </geometry>
     </visual>
     <collision>
-      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
       <geometry>
-        <mesh filename=\"package://aria_model/dae/aria_eye.dae\" size=\"1 1 1\"/>
+        <box size=\"0 0 0\"/>
       </geometry>
     </collision>
   </link>")
@@ -391,15 +391,15 @@
       </geometry>
     </visual>
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
       <geometry>
-        <box size="0 0 0"/>
+        <box size=\"0 0 0\"/>
       </geometry>
     </collision>
   </link>")
     (format out "~A~%"
 	    "<joint name=\"camera_joint\" type=\"fixed\">
-      <origin xyz=\"0.1525 0.082 -0.005\" rpy=\"-1.57 0 0\"/>
+      <origin xyz=\"0.1525 0.147 -0.005\" rpy=\"-1.57 0 0\"/>
       <!-- <origin xyz=\"0.0185 0.06 0\" rpy=\"-1.57 0 0\"/> -->
       <parent link=\"neck3_link\"/>
       <child link=\"camera_link\"/>
@@ -454,7 +454,7 @@
 	  ((find (nth (position i id) parent) id)
 	   (format out "~A~%" (gen-transmission-definition :id i)))))
      id)
-    (formate out "~A~%"
+    (format out "~A~%"
 	     "<transmission name=\"eye_r_hori_trans\">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name=\"neck3\"/>
