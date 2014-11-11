@@ -208,10 +208,12 @@ void VirtualMCUCore::JsonRequestCallback(const std_msgs::String& data) {
 }
 
 void VirtualMCUCore::TorqueRequestCallback(const std_msgs::Float32MultiArray::ConstPtr& data) {
+  set_time_ = data->data.at(data->data.size()-1);
   setGoal(data->data);
 }
 
 void VirtualMCUCore::PositionRequestCallback(const std_msgs::Float32MultiArray::ConstPtr& data) {
+  set_time_ = data->data.at(data->data.size()-1);
   setGoal(data->data);
 }
 
