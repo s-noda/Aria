@@ -242,10 +242,11 @@
    (send self :send-vector vector 'position))
   (:angle-vector
    (&optional (vector (send robot :angle-vector)) (tm 5000))
-   (ros::publish "/aria_minjerk_interpolator/request/string";;"/aria_interpolator/position"
-		 (instance std_msgs::string
-			   :init
-			   :data (format nil "(~A ~A)" vector tm))))
+   (send self :_angle-vector vector))
+   ;; (ros::publish "/aria_minjerk_interpolator/request/string";;"/aria_interpolator/position"
+   ;; 		 (instance std_msgs::string
+   ;; 			   :init
+   ;; 			   :data (format nil "(~A ~A)" vector tm))))
   (:torque-vector
    (&optional (vector (send robot :torque-vector)))
    (send self :send-vector vector 'torque))

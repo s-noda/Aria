@@ -176,7 +176,7 @@ VecGripper::VecGripper() {
   right = 0;
 }
 
-VecGripper::VecGripper(const float init_left, const float init_right) {
+VecGripper::VecGripper(const float init_right, const float init_left) {
   left = init_left;
   right = init_right;
 }

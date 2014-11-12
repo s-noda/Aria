@@ -195,13 +195,15 @@ ssb_common_vec::VecEye VirtualQuadOEyeModel::getHomeAsInput() {
 
 void GripperModel::setParams(ssb_common_enum::Config settings) {
   ssb_common_vec::VecGripper direction_settings(1, -1);
+  ssb_common_vec::VecGripper offset_settings(0.0, 0.0);
   sgn_direction_ = direction_settings;
+  c_input2output_ = offset_settings;
 }
 
 void GripperModel::Input2Output() {
   ssb_common_vec::VecGripper tmp_output;
-  tmp_output.left = sgn_direction_.left * input_.left;
-  tmp_output.right = sgn_direction_.right * input_.right;
+  tmp_output.left = sgn_direction_.left * (input_.left + c_input2output_.left);
+  tmp_output.right = sgn_direction_.right * (input_.right + c_input2output_.right);
   output_ = tmp_output;
 }
 
@@ -211,14 +213,16 @@ ssb_common_vec::VecGripper GripperModel::getHomeAsInput() {
 
 
 void VirtualGripperModel::setParams(ssb_common_enum::Config settings) {
-  ssb_common_vec::VecGripper direction_settings(1, 1);
+  ssb_common_vec::VecGripper direction_settings(1, -1);
+  ssb_common_vec::VecGripper offset_settings(0.0, 3.14);
   sgn_direction_ = direction_settings;
+  c_input2output_ = offset_settings;
 }
 
 void VirtualGripperModel::Input2Output() {
   ssb_common_vec::VecGripper tmp_output;
-  tmp_output.left = sgn_direction_.left * input_.left;
-  tmp_output.right = sgn_direction_.right * input_.right;
+  tmp_output.left = sgn_direction_.left * (input_.left + c_input2output_.left);
+  tmp_output.right = sgn_direction_.right * (input_.right + c_input2output_.right);
   output_ = tmp_output;
 }
 

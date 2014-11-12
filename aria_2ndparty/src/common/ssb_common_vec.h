@@ -70,7 +70,7 @@ struct VecQuadOEye {
 
 struct VecGripper {
   VecGripper();
-  VecGripper(const float init_left, const float init_right);
+  VecGripper(const float init_right, const float init_left);
   VecGripper(const VecGripper &obj);
   VecGripper& operator=(const VecGripper &obj);
   VecGripper& operator+=(const VecGripper &obj);

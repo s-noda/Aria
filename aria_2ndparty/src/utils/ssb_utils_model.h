@@ -103,7 +103,7 @@ class GripperModel : public Model<ssb_common_vec::VecGripper,
   void Input2Output();
   ssb_common_vec::VecGripper getHomeAsInput();
  private:
-  ssb_common_vec::VecGripper k_input2output_;
+  ssb_common_vec::VecGripper c_input2output_;
 };
 
 
@@ -119,7 +119,7 @@ class VirtualGripperModel : public Model<ssb_common_vec::VecGripper,
   void Input2Output();
   ssb_common_vec::VecGripper getHomeAsInput();
  private:
-  ssb_common_vec::VecGripper k_input2output_;
+  ssb_common_vec::VecGripper c_input2output_;
 };
 
 
