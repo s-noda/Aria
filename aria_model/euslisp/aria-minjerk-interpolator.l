@@ -299,6 +299,7 @@
   nil
   (send *robot* :angle-vector (float-vector 0.0 -2.21381 -55.2 -45.6 62.4 57.6 26.4 -7.2 0.0 0.89541 0.499902 -52.8 -76.8 -57.6 -30.0 2.09296 -0.348825 0.085145 -1.25797 0.543833 -0.126345 -70.0))
   (send-all (send *robot* :head :joint-list) :joint-angle 0)
+  (send *robot* :head :neck-p :joint-angle 10)
   (ros::publish "/aria_minjerk_interpolator/request/string"
 		(instance std_msgs::string :init
 			  :data
@@ -308,6 +309,8 @@
   (unix:sleep 7)
   (send *robot* :angle-vector
 	(float-vector -2.4 4.8 -74.4 -79.2 -88.8 55.2 -93.6 -50.4 0.0 5.1143 19.5178 -86.4 96.0 -38.4 96.0 28.8 -4.11725 0.733357 -1.41179 -0.291144 -30.0101 10.1682))
+  (send *robot* :head :neck-p :joint-angle 10)
+  (send *robot* :head :neck-r :joint-angle 0)
 	;;(float-vector -2.4 4.8 -74.4 -79.2 -91.2 69.6 -93.6 -50.4 0.0 5.1143 19.5178 -86.4 98.4 -57.6 96.0 28.8 -4.11725 0.733357 -1.41179 -0.291144 -30.0101 10.1682))
 	;;(float-vector -2.4 4.8 -74.4 -88.8 -88.8 48.0 -93.6 -50.4 0.0 5.1143 19.5178 -117.6 98.4 -40.8 84.0 28.8 -4.11725 0.733357 -1.41179 -0.291144 -30.0101 10.1682))
 	;;(float-vector -2.4 -2.4 -62.4 -120.0 120.0 38.4 91.2 -76.8 0.0 0.89541 21.6 -117.6 -69.6 -93.6 -45.6 52.8 -12.0 0.085145 -1.25797 0.0 -28.8 12.0))
@@ -365,3 +368,21 @@
 (call-function :func "setPIDGain"
 
 (call-function :func "setGains" :param "[0.5, 0.5, 1.0, 1.0]")
+
+
+(send *robot* :angle-vector (float-vector 0.0 -2.21381 -55.2 -45.6 62.4 57.6 26.4 -7.2 0.0 0.89541 0.499902 -52.8 -76.8 -57.6 -30.0 2.09296 -0.348825 0.085145 -1.25797 0.543833 -0.126345 -70.0))
+(send-all (send *robot* :head :joint-list) :joint-angle 0)
+(send *robot* :head :neck-p :joint-angle 20)
+(send *viewer* :draw-objects)
+
+
+(send *robot* :angle-vector
+      (float-vector -2.4 4.8 -74.4 -79.2 -88.8 55.2 -93.6 -50.4 0.0 5.1143 19.5178 -86.4 96.0 -38.4 96.0 28.8 -4.11725 0.733357 -1.41179 -0.291144 -30.0101 10.1682))
+(send *robot* :head :neck-p :joint-angle 20)
+(send *viewer* :draw-objects)
+
+
+(send *robot* :reset-manip-pose)
+(send *robot* :head :neck-p :joint-angle 20)
+(send *viewer* :draw-objects)
+

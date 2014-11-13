@@ -97,6 +97,8 @@
 		   std_msgs::float32multiarray)
    (ros::advertise "/currentor_socket/request/torque_vector"
 		   std_msgs::float32multiarray)
+   (ros::advertise "/currentor_socket/request/wheel_torque_vector"
+		   std_msgs::float32multiarray)
    (ros::advertise "/currentor_socket/request/torque_max_vector"
 		   std_msgs::float32multiarray)
    (ros::advertise "/currentor_socket/request/torque_min_vector"
@@ -246,6 +248,20 @@
 		 (instance std_msgs::string
 			   :init
 			   :data (format nil "(~A ~A)" vector tm))))
+  ;; (:wheel-torque-vector
+  ;;  (&optional (vector (float-vector 0 0))
+  ;; 	      (torque-vector (scale 0 (send robot :angle-vector))))
+  ;;  (map cons
+  ;; 	#'(lambda (j v) (send j :put 'torque v))
+  ;; 	(subseq joint-list (- (length joint-list) 2))
+  ;; 	vector)
+  ;;  (send self :torque-vector torque-vector))
+  (:wheel-torque-vector
+   (&optional (vector (float-vector 0 0)))
+   (ros::publish "/currentor_socket/request/wheel_torque_vector"
+		 (instance std_msgs::float32multiarray
+			   :init
+			   :data vector)))
   (:torque-vector
    (&optional (vector (send robot :torque-vector)))
    (send self :send-vector vector 'torque))
@@ -258,6 +274,7 @@
   (:mode-vector
    (&optional (vector (scale 0 (send robot :angle-vector))))
    (send self :send-vector vector 'mode))
+  ;;)
   )
 
 (defun gen-aria-imu-coords
@@ -302,8 +319,8 @@
 
 (defun model2real
   nil
-  (send *ri* :angle-vector
-	(send *robot* :angle-vector) 3000))
+  (send *ri* :_angle-vector
+	(send *robot* :angle-vector))) ;; 3000))
 
 (defun real2model
   (&key (draw? t))
