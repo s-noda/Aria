@@ -33,6 +33,8 @@ private:
   ros::Subscriber position_subscriber_;
   ros::Subscriber tsensor_subscriber_;
   ros::Subscriber psensor_subscriber_;
+  ros::Publisher tsensor_publisher_;
+  ros::Publisher psensor_publisher_;
   int _fps_;
   float set_time_;
   vec::VecInterpolation set_interpolation_;
@@ -63,6 +65,10 @@ VirtualMCUCore::VirtualMCUCore(ros::NodeHandle &nh) {
   psensor_subscriber_ =
     nh_.subscribe("/currentor_socket/virtual_array/position", 1000,
 		  &VirtualMCUCore::PositionSensorCallback, this);
+  tsensor_publisher_ =
+    nh_.advertise<std_msgs::Float32MultiArray>("/currentor_socket/sensor_array/torque", 100);
+  psensor_publisher_=
+    nh_.advertise<std_msgs::Float32MultiArray>("/currentor_socket/sensor_array/position", 100);
   aria_player_ = boost::shared_ptr<key::KeyFramePlayer
 				   <vec::VecBody, mdl::VirtualAriaModel> >
     (new key::KeyFramePlayer<vec::VecBody, mdl::VirtualAriaModel>
@@ -80,6 +86,11 @@ VirtualMCUCore::VirtualMCUCore(ros::NodeHandle &nh) {
 
 void VirtualMCUCore::Main() {
   aria_player_->OnPlay();
+  std_msgs::Float32MultiArray psensor_value, tsensor_value;
+  psensor_value.data = sensor_.position;
+  tsensor_value.data = sensor_.torque;
+  psensor_publisher_.publish(psensor_value);
+  tsensor_publisher_.publish(tsensor_value);
 }
 
 int VirtualMCUCore::getFPS() {
