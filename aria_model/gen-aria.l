@@ -264,8 +264,143 @@
      id)
     ;; ssb
     (format out "~A~%"
+	    "<joint name=\"eye_r_hori\" type=\"revolute\">
+    <origin rpy=\"0.05 -0.419 -0.189\" xyz=\"0.0 0.0762 0.0065\"/>
+    <axis xyz=\"0 1 0\"/>
+    <parent link=\"neck3_link\"/>
+    <child link=\"eyer_link\"/>
+    <limit effort=\"10\" lower=\"-3.14\" upper=\"3.14\" velocity=\"1\"/>
+    <dynamics damping=\"0.7\" friction=\"0.0\"/>
+  </joint>
+<link name=\"eyer_link\">
+    <inertial>
+      <mass value=\"0.0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>
+    </inertial>
+    <visual>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <geometry>
+        <box size=\"0.01 0.01 0.01\"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <geometry>
+        <box size=\"0 0 0\"/>
+      </geometry>
+    </collision>
+  </link>
+<joint name=\"eye_r_vert\" type=\"revolute\">
+    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>
+    <axis xyz=\"0 0 1\"/>
+    <parent link=\"eyer_link\"/>
+    <child link=\"eyer_end_link\"/>
+    <limit effort=\"10\" lower=\"-3.14\" upper=\"3.14\" velocity=\"1\"/>
+    <dynamics damping=\"0.7\" friction=\"0.0\"/>
+  </joint>
+<link name=\"eyer_end_link\">
+    <inertial>
+      <mass value=\"0.0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>
+    </inertial>
+    <visual>
+      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
+      <geometry>
+        <mesh filename=\"package://aria_model/dae/aria_eye.dae\" scale=\"1 1 1\"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <geometry>
+        <box size=\"0 0 0\"/>
+      </geometry>
+    </collision>
+  </link>
+<joint name=\"eye_l_hori\" type=\"revolute\">
+    <origin rpy=\"-0.05 0.419 -0.189\" xyz=\"0.0 0.0762 -0.0065\"/>
+    <axis xyz=\"0 1 0\"/>
+    <parent link=\"neck3_link\"/>
+    <child link=\"eyel_link\"/>
+    <limit effort=\"10\" lower=\"-3.14\" upper=\"3.14\" velocity=\"1\"/>
+    <dynamics damping=\"0.7\" friction=\"0.0\"/>
+  </joint>
+<link name=\"eyel_link\">
+    <inertial>
+      <mass value=\"0.0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>
+    </inertial>
+    <visual>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <geometry>
+        <box size=\"0.01 0.01 0.01\"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <geometry>
+        <box size=\"0 0 0\"/>
+      </geometry>
+    </collision>
+  </link>
+<joint name=\"eye_l_vert\" type=\"revolute\">
+    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>
+    <axis xyz=\"0 0 1\"/>
+    <parent link=\"eyel_link\"/>
+    <child link=\"eyel_end_link\"/>
+    <limit effort=\"10\" lower=\"-3.14\" upper=\"3.14\" velocity=\"1\"/>
+    <dynamics damping=\"0.7\" friction=\"0.0\"/>
+  </joint>
+<link name=\"eyel_end_link\">
+    <inertial>
+      <mass value=\"0.0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>
+    </inertial>
+    <visual>
+      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
+      <geometry>
+        <mesh filename=\"package://aria_model/dae/aria_eye.dae\" scale=\"1 1 1\"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <geometry>
+        <box size=\"0 0 0\"/>
+      </geometry>
+    </collision>
+  </link>")
+    (format out "~A~%"
+	    "<joint name=\"head_joint\" type=\"fixed\">
+    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>
+    <parent link=\"neck3_link\"/>
+    <child link=\"head_link\"/>
+  </joint>
+<link name=\"head_link\">
+    <inertial>
+      <mass value=\"0.0\"/>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>
+    </inertial>
+    <visual>
+      <origin xyz=\"0 0 0\" rpy=\"0 1.57 1.57\"/>
+      <geometry>
+        <mesh filename=\"package://aria_model/dae/aria_head_simple.dae\" scale=\"1.0 1.0 1.0\" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>
+      <geometry>
+        <box size=\"0 0 0\"/>
+      </geometry>
+    </collision>
+  </link>")
+    (format out "~A~%"
 	    "<joint name=\"camera_joint\" type=\"fixed\">
-      <origin xyz=\"0 0.06 0\" rpy=\"-1.57 0 0\"/>
+      <origin xyz=\"0.1525 0.147 -0.005\" rpy=\"-1.57 0 0\"/>
+      <!-- <origin xyz=\"0.0185 0.06 0\" rpy=\"-1.57 0 0\"/> -->
       <parent link=\"neck3_link\"/>
       <child link=\"camera_link\"/>
     </joint>
@@ -278,8 +413,8 @@
       <visual>
 	<origin xyz=\"0 0 0\" rpy=\"0 0 0\" />
 	<geometry>
-	  <box size=\"0.037 0.18 0.025\"/>
-	  <!--<mesh filename=\"package://hector_sensors_description/meshes/asus_camera/asus_camera_simple.dae\"/>-->
+	  <!-- <box size=\"0.037 0.18 0.025\"/> -->
+	  <mesh filename=\"package://hector_sensors_description/meshes/asus_camera/asus_camera_simple.dae\"/>
 	</geometry>
       </visual>
       <collision>
@@ -305,7 +440,7 @@
       <origin xyz=\"0.0 0.022 0.0\" rpy=\"0 0 0\" />
       <parent link=\"camera_link\" />
       <child link=\"camera_rgb_frame\"/>
-    </joint>
+    </joint>ex
     <link name=\"camera_rgb_frame\"/>
     <joint name=\"camera_rgb_optical_joint\" type=\"fixed\">
       <origin xyz=\"0 0 0\" rpy=\"-1.57 0.0 -1.57\" />
@@ -319,6 +454,39 @@
 	  ((find (nth (position i id) parent) id)
 	   (format out "~A~%" (gen-transmission-definition :id i)))))
      id)
+    (format out "~A~%"
+	     "<transmission name=\"eye_r_hori_trans\">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name=\"neck3\"/>
+    <actuator name=\"eye_r_hori_act\">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+<transmission name=\"eye_r_vert_trans\">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name=\"eyer_link\"/>
+    <actuator name=\"eye_r_vert_act\">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+<transmission name=\"eye_l_hori_trans\">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name=\"neck3\"/>
+    <actuator name=\"eye_l_hori_act\">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+<transmission name=\"eye_l_vert_trans\">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name=\"eyel_link\"/>
+    <actuator name=\"eye_l_vert_act\">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>")
     (format out "</robot>~%")
     (close out)
     )

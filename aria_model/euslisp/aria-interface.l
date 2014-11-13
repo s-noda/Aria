@@ -262,6 +262,10 @@
 		 (instance std_msgs::float32multiarray
 			   :init
 			   :data vector)))
+   ;; (ros::publish "/aria_minjerk_interpolator/request/string";;"/aria_interpolator/position"
+   ;; 		 (instance std_msgs::string
+   ;; 			   :init
+   ;; 			   :data (format nil "(~A ~A)" vector tm))))
   (:torque-vector
    (&optional (vector (send robot :torque-vector)))
    (send self :send-vector vector 'torque))

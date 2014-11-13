@@ -70,7 +70,7 @@ struct VecQuadOEye {
 
 struct VecGripper {
   VecGripper();
-  VecGripper(const float init_left, const float init_right);
+  VecGripper(const float init_right, const float init_left);
   VecGripper(const VecGripper &obj);
   VecGripper& operator=(const VecGripper &obj);
   VecGripper& operator+=(const VecGripper &obj);
@@ -81,6 +81,20 @@ struct VecGripper {
   // Takes the dynamixel input value which is -2.0 to 2.0.
   float left;
   float right;
+};
+
+
+struct VecBody {
+  VecBody();
+  VecBody(const int init_size);
+  VecBody(const std::vector<float> init_joints);
+  VecBody(const VecBody &obj);
+  VecBody& operator=(const VecBody &obj);
+  VecBody& operator+=(const VecBody &obj);
+  VecBody& operator-=(const VecBody &obj);
+  VecBody& operator/=(const float kGain);
+  VecBody& operator*=(const float kGain);
+  std::vector<float> joints;
 };
 
 struct VecTime {

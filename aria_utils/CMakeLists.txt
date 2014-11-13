@@ -34,9 +34,15 @@ include_directories(
   ../aria_2ndparty/src/utils
 )
 
-add_executable(interactive_pose_maker src/interactive_pose_maker.cc ../aria_2ndparty/src/common/ssb_common_of.cc ../aria_2ndparty/src/common/ssb_common_vec.cc ../aria_2ndparty/src/utils/ssb_utils_model.cc)
+add_executable(ps3_to_web src/ps3_to_web.cc ../aria_2ndparty/src/common/ssb_common_of.cc ../aria_2ndparty/src/common/ssb_common_vec.cc ../aria_2ndparty/src/utils/ssb_utils_model.cc)
 
-target_link_libraries(interactive_pose_maker
+add_executable(virtual_mcu_core src/virtual_mcu_core.cc ../aria_2ndparty/src/common/ssb_common_of.cc ../aria_2ndparty/src/common/ssb_common_vec.cc ../aria_2ndparty/src/utils/ssb_utils_model.cc ../aria_2ndparty/src/utils/ssb_utils_interpolation.cc)
+
+target_link_libraries(ps3_to_web
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(virtual_mcu_core
   ${catkin_LIBRARIES}
 )
 

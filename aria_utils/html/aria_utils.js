@@ -130,10 +130,11 @@ function _play(tableID, i) {
         eye_dat.push(time_dat);
         var gripper_dat = dat.slice(dat.length-4, dat.length-3);
         gripper_dat.push(time_dat);
+	aria_dat[aria_dat.length-1] = time_dat;
         var aria_msg = new ROSLIB.Message({
 	    data : aria_dat
         });
-        setTime(time_dat)
+        //setTime(time_dat)
         //sleep(100);
         ariaPublisher.publish(aria_msg);
         var eye_msg = new ROSLIB.Message({
@@ -253,13 +254,14 @@ function addRow(tableID, value) {
 	var time_dat = dat[dat.length-1]
 	var aria_dat = dat.slice(0, dat.length-5);
 	var eye_dat = dat.slice(dat.length-2, dat.length-1);
-	eye_dat.push(time_dat)
+	eye_dat.push(time_dat);
 	var gripper_dat = dat.slice(dat.length-4, dat.length-3);
-	gripper_dat.push(time_dat)
+	gripper_dat.push(time_dat);
+	aria_dat[aria_dat.length-1] = time_dat;
 	var aria_msg = new ROSLIB.Message({
             data : aria_dat
 	});
-	setTime(time_dat)
+	//setTime(time_dat)
 	ariaPublisher.publish(aria_msg);
 	var eye_msg = new ROSLIB.Message({
 	    data : eye_dat
@@ -276,7 +278,7 @@ function addRow(tableID, value) {
     var cell5 = row.insertCell(4);
     var element5 = document.createElement("input");
     element5.type = "text";
-    element5.value = "3.0";
+    element5.value = "1.0";
     element5.name = "txtbox[]";
     cell5.appendChild(element5);
 

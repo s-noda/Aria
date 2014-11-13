@@ -14,9 +14,21 @@ aria() {
 	fi
     elif [ $1 = "pub" ] ; then
 	if [ $2 = "gripper" ] ; then
-	    rostopic pub --once "/2ndparty/request/gripper" std_msgs/Float32MultiArray '{data: '$3'}'
+	    rostopic pub --once "/2ndparty/request/gripper" std_msgs/Float32MultiArray '{data: '$3'}' &
+	    PROC=$!
+	    (sleep 0.6; kill $PROC)
 	elif [ $2 = "eye" ] ; then
-	    rostopic pub --once "/2ndparty/request/eye" std_msgs/Float32MultiArray '{data: '$3'}'
+	    rostopic pub --once "/2ndparty/request/eye" std_msgs/Float32MultiArray '{data: '$3'}' &
+	    PROC=$!
+	    (sleep 0.6; kill $PROC)
+	elif [ $2 = "torque" ] ; then
+	    rostopic pub --once "/currentor_socket/request/torque_vector" std_msgs/Float32MultiArray '{data: '$3'}' &
+	    PROC=$!
+	    (sleep 0.6; kill $PROC)
+	elif [ $2 = "position" ] ; then
+	    rostopic pub --once "/currentor_socket/request/position_vector" std_msgs/Float32MultiArray '{data: '$3'}' &
+	    PROC=$!
+	    (sleep 0.6; kill $PROC)
 	elif [ $2 = "setFeedback" ] ; then
 	    mode=0
 	    if [ $3 = "velocity" ] ; then
@@ -36,20 +48,30 @@ aria() {
 	    else
 		mode=0
 	    fi
-	    rostopic pub --once "/ros2http/socket_listener/json_string" std_msgs/String '{data: "{\"method\":\"setFeedback\",\"params\":\"['$mode']\",\"id\":\"0\"}"}'
+	    rostopic pub --once "/ros2http/socket_listener/json_string" std_msgs/String '{data: "{\"method\":\"setFeedback\",\"params\":\"['$mode']\",\"id\":\"0\"}"}' &
+	    PROC=$!
+	    (sleep 0.6; kill $PROC)
 	else
-	    rostopic pub --once "/ros2http/socket_listener/json_string" std_msgs/String '{data: "{\"method\":\"'$2'\",\"params\":\"'$3'\",\"id\":\"0\"}"}'
+	    rostopic pub --once "/ros2http/socket_listener/json_string" std_msgs/String '{data: "{\"method\":\"'$2'\",\"params\":\"'$3'\",\"id\":\"0\"}"}' &
+	    PROC=$!
+	    (sleep 0.6; kill $PROC)
 	fi
     elif [ $1 = "list" ] ; then
-	echo $'aria once <torque, position, mode, velocity, temperature, debug>\naria echo <torque, position, mode, velocity, temperature, debug>\naria pub sendZero\naria pub setTorque [<joint>,<torque>]\naria pub setPosition [<joint>,<angle>]\naria pub setControlMode [<joint>,<mode>]\naria pub setTime [<time>]\naria pub setFeedback <torque, position, Kp, Kd, Ct, Cp>\naria gripper [<right>,<left>,<time>]\naria eye [<horizontal>,<vertical>,<time>]\naria set_pid_gain\naria initiate\naria send_zero\naria mode <standard, pose>'
+	echo $'aria once <torque, position, mode, velocity, temperature, debug>\naria echo <torque, position, mode, velocity, temperature, debug>\naria pub sendZero\naria pub setTorque [<joint>,<torque>]\naria pub setPosition [<joint>,<angle>]\naria pub setControlMode [<joint>,<mode>]\naria pub setTime [<time>]\naria pub setFeedback <torque, position, Kp, Kd, Ct, Cp>\naria pub gripper [<right>,<left>,<time>]\naria pub eye [<horizontal>,<vertical>,<time>]\naria pub torque [0.0,<no.1>,...,<no.29>]\naria pub position [0.0,<no.1>,...,<no.29>]\naria set_pid_gain\naria initiate\naria send_zero\naria mode <standard, pose>'
     elif [ $1 = "mode" ] ; then
 	if [ $2 = "standard" ] ; then
-	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}'
+	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
+	    PROC=$!
+	    (sleep 0.6; kill $PROC)
 	elif [ $2 = "pose" ] ; then
-	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','2.0','2.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}'
+	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','4.0','2.0','2.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
+	    PROC=$!
+	    (sleep 0.6; kill $PROC)
 	fi
     else
-	rostopic pub --once "/aria/commandline" std_msgs/String $1
+	rostopic pub --once "/aria/commandline" std_msgs/String $1 &
+	PROC=$!
+	(sleep 0.6; kill $PROC)
     fi
 }
 
