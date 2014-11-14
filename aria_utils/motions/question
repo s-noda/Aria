@@ -10,6 +10,7 @@ template() {
   gt=1.0
 
   rosrun aria_utils aria pub setInterpolation $bezier
+  rosrun aria_utils aria pub eye [0.0,0.0,$gt] &
   rosrun aria_utils aria pub position [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.16755160689353943,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,$gt]
   sleep $gt
 }

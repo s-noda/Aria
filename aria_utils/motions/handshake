@@ -10,6 +10,7 @@ template() {
   gt=1.0
 
   rosrun aria_utils aria pub setInterpolation $sigmoid
+  rosrun aria_utils aria pub eye [0.0,0.0,$gt] &
   rosrun aria_utils aria pub position [0.0,0.0,0.2932153046131134,0.0,0.0,1.3404128551483154,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,$gt]
 
   sleep $gt

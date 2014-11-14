@@ -10,6 +10,7 @@ template() {
   gt=1.0
 
   rosrun aria_utils aria pub setInterpolation $slowout
+  rosrun aria_utils aria pub eye [0.0,0.0,$gt] &
   rosrun aria_utils aria pub position [0.0,0.25132742524147034,0.20943951606750488,0.20943951606750488,0.0,2.094395160675049,1.0,0.7539822459220886,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.20943951606750488,0.0,0.0,-0.5026548504829407,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,$gt]
   sleep $gt
 }
