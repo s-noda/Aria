@@ -24,85 +24,100 @@ pid_vector_topic_name = '/currentor_socket/request/pid_vector'
 eye_topic_name = '/2ndparty/request/eye'
 gripper_topic_name = '/2ndparyt/request/gripper'
 
-shscript = './aria_echo.sh'
+
+pub_json = None
+pub_mode = None
+pub_torque = None
+pub_position = None
+pub_pid = None
+pub_eye = None
+pub_gripper = None
+
+def init_publisher():
+    global pub_json
+    global pub_mode
+    global pub_torque
+    global pub_position
+    global pub_pid
+    global pub_eye
+    global pub_gripper
+    pub_json = rospy.Publisher(json_string_topic_name,
+                               String, latch=True)
+    pub_mode = rospy.Publisher(mode_vector_topic_name,
+                               Float32MultiArray, latch=True)
+    pub_torque = rospy.Publisher(torque_vector_topic_name,
+                                 Float32MultiArray, latch=True)
+    pub_position = rospy.Publisher(position_vector_topic_name,
+                                   Float32MultiArray, latch=True)
+    pub_pid = rospy.Publisher(pid_vector_topic_name,
+                              Float32MultiArray, latch=True)
+    pub_eye = rospy.Publisher(eye_topic_name,
+                              Float32MultiArray, latch=True)
+    pub_gripper = rospy.Publisher(gripper_topic_name,
+                                  Float32MultiArray, latch=True)
 
 def echo_joints(data_type):
-    msg = subprocess.check_output([shscript, str(data_type)])
+    msg = subprocess.check_output(['rostopic','echo','-n1',
+                                   '/currentor_socket/sensor_array/%s/data'
+                                   % (str(data_type))])
     msg = re.split('\[|\]',msg)
     msg.remove('')
-    msg.remove(' ---\n')
+    msg.remove('\n---\n')
     msg = map(float, msg[0].split(','))
     return msg
 
 def echo_joint(data_type, joint):
-    msg = subprocess.check_output([shscript, str(data_type), str(joint)])
-    msg = msg.split(' ')
-    msg.remove('---\n')
+    msg = subprocess.check_output(['rostopic', 'echo', '-n1', 
+                                   '/currentor_socket/sensor_array/%s/data[%d]'
+                                   % (str(data_type), joint)])
+    msg = re.split('\[\|]|\\n',msg)
     return float(msg[0])
 
 def set_feedback(fb_type):
     msg = String()
     msg.data = '{\"method\":\"%s\",\"params\":\"[%f]\",\"id\":\"0\"}' % ('setFeedback', fb_type)
-    pub = rospy.Publisher('/ros2http/socket_listener/json_string', String, latch=True)
-    pub.publish(msg)
+    pub_json.publish(msg)
 
 def set_control_mode(joint, mode):
     msg = String()
     msg.data = '{\"method\":\"setControlMode\",\"params\":\"[%d,%f]\",\"id\":\"1\"}' % (joint, mode)
-    pub = rospy.Publisher('/ros2http/socket_listener/json_string', String, latch=True)
-    pub.publish(msg)
+    pub_json.publish(msg)
     time.sleep(0.1)
-#    print echo_joints('mode')
     return mode
 
 def set_torque(joint, torque):
     msg = String()
     msg.data = '{\"method\":\"setTorque\",\"params\":\"[%d,%f]\",\"id\":\"1\"}' % (joint, torque)
-    pub = rospy.Publisher(json_string_topic_name, String, latch=True)
-    pub.publish(msg)
+    pub_json.publish(msg)
     time.sleep(0.1)
-#    set_feedback(feedback['torque'])
-#    print echo_joints('debug')
     return torque
 
 def set_position(joint, position):
     msg = String()
     msg.data = '{\"method\":\"setPosition\",\"params\":\"[%d,%f]\",\"id\":\"1\"}' % (joint, position)
-    pub = rospy.Publisher(json_string_topic_name, String, latch=True)
-    pub.publish(msg)
+    pub_json.publish(msg)
     time.sleep(0.1)
-#    set_feedback(feedback['position'])
-#    print echo_joints('debug')
     return position
 
 def set_control_modes(data):
-    pub = rospy.Publisher(mode_vector_topic_name, Float32MultiArray, latch=True)
     msg = Float32MultiArray()
     msg.data = data
-    pub.publish(msg)
+    pub_mode.publish(msg)
     time.sleep(0.1)
-#    print echo_joints('mode')
 
 def set_torques(data):
-    pub = rospy.Publisher(torque_vector_topic_name, Float32MultiArray, latch=True)
     msg = Float32MultiArray()
     msg.data = data
-    pub.publish(msg)
+    pub_torque.publish(msg)
     time.sleep(0.1)
-#    set_feedback(feedback['torque'])
-#    print echo_joints('debug')
 
 def set_positions(data):
-    pub = rospy.Publisher(position_vector_topic_name, Float32MultiArray, latch=True)
     msg = Float32MultiArray()
     msg.data = data
-    pub.publish(msg)
+    pub_position.publish(msg)
     time.sleep(0.1)
-#    set_feedback(feedback['position'])
-#    print echo_joints('debug')
 
 def set_pid_gain(joint, p=0.0, i=0.0, d=0.0):
-    pub = rospy.Publisher(pid_vector_topic_name, Float32MultiArray, latch=True)
     msg = Float32MultiArray()
     if not type(joint) is int:
         msg.data = joint
@@ -118,7 +133,7 @@ def set_pid_gain(joint, p=0.0, i=0.0, d=0.0):
         msg.data[joint] = p
         msg.data[joint+joint_size] = i
         msg.data[joint+2*joint_size] = d
-    pub.publish(msg)
+    pub_pid.publish(msg)
     time.sleep(0.1)
     ret = echo_joints('debug')
     set_feedback(feedback['kp'])
@@ -129,43 +144,25 @@ def set_pid_gain(joint, p=0.0, i=0.0, d=0.0):
 def init_pid_gain(joint, p, i, d):
     msg = String()
     msg.data = '{\"method\":\"initPIDGain\",\"params\":\"[%d,%f,%f,%f]\",\"id\":\"1\"}' % (joint, p, i, d)
-    pub = rospy.Publisher(json_string_topic_name, String, latch=True)
-    pub.publish(msg)
+    pub_json.publish(msg)
 
-def set_ct(joint, ct, cp=0.0):
-    pub = rospy.Publisher(ct_vector_topic_name, Float32MultiArray, latch=True)
-    msg = Float32MultiArray()
-    if not type(joint) is int:
-        msg.data = joint
-    else:
-        set_feedback(fb_ct)
-        time.sleep(0.1)
-        tmp = echo_joints('debug')
-        msg.data = tmp
-        msg.data[joint] = ct
-    pub.publish(msg)
-    time.sleep(0.1)
-#    print echo_joints('debug')
 
 def set_interpolation(interpolate_type):
     msg = String()
     msg.data = '{\"method\":\"setInterpolation\",\"params\":\"[%f]\",\"id\":\"1\"}' % (interpolation[interpolate_type])
-    pub = rospy.Publisher(json_string_topic_name, String, latch=True)
-    pub.publish(msg)
+    pub_json.publish(msg)
     time.sleep(0.1)
 
 def eye(data):
-    pub = rospy.Publisher(eye_topic_name, Float32MultiArray, latch=True)
     msg = Float32MultiArray()
     msg.data = data
-    pub.publish(msg)
+    pub_eye.publish(msg)
     time.sleep(0.1)
 
 def gripper(data):
-    pub = rospy.Publisher(gripper_topic_name, Float32MultiArray, latch=True)
     msg = Float32MultiArray()
     msg.data = data
-    pub.publish(msg)
+    pub_gripper.publish(msg)
     time.sleep(0.1)
 
 if __name__ == '__main__':
