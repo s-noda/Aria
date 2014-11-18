@@ -9,6 +9,11 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
 )
 
+find_package(kduino REQUIRED)
+find_package(dynamixel_msgs REQUIRED)
+
+include_directories(${kduino_INCLUDE_DIRS})
+include_directories(${dynamixel_INCLUDE_DIRS})
 
 find_package(OpenCV)
 
@@ -34,8 +39,8 @@ catkin_package(
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  includes/kduino
-  includes/dynamixel_msgs
+#  includes/kduino
+#  includes/dynamixel_msgs
   src/common
   src/sensors
   src/actuators

@@ -26,13 +26,17 @@ catkin_package(
 ## Build ##
 ###########
 
+find_package(jsk_gui_msgs REQUIRED)
+
+include_directories(${jsk_gui_msgs_INCLUDE_DIRS})
+
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ../aria_2ndparty/src/common
   ../aria_2ndparty/src/sensors
   ../aria_2ndparty/src/actuators
   ../aria_2ndparty/src/utils
-  includes/jsk_gui_msgs
+  ## includes/jsk_gui_msgs
 )
 
 add_executable(ps3_to_web src/ps3_to_web.cc ../aria_2ndparty/src/common/ssb_common_of.cc ../aria_2ndparty/src/common/ssb_common_vec.cc ../aria_2ndparty/src/utils/ssb_utils_model.cc)
