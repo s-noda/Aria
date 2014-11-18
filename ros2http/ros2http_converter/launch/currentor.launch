@@ -4,12 +4,15 @@
   <arg name="virtual" default="0" />
   <include file="$(find openni2_launch)/launch/openni2.launch" unless="$(arg virtual)"/>
 
+  <param name="robot_description" textfile="$(find aria_model)/aria.urdf" />
+
   <group if="$(arg virtual)">
-    <include file="$(find ros2http)/ros2http_converter/launch/virtual_urdf.launch" />
-    <node pkg="aria_2ndparty" type="second_party_core" name="second_party_core" />
+    <include file="$(find ros2http)/ros2http_converter/launch/virtual_urdf.launch" />  
     <node pkg="aria_utils" type="virtual_mcu_core" name="virtual_mcu_core" />
   </group>
-  
+
+  <node pkg="aria_2ndparty" type="second_party_core" name="second_party_core" />
+
   <include file="$(find ros2http)/ros2http_converter/launch/urdf.launch" unless="$(arg virtual)"/>
 
   <group if="$(arg viz)">

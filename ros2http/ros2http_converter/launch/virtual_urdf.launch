@@ -1,7 +1,4 @@
 <launch>
- <group>
- <param name="robot_description" textfile="$(find aria_model)/aria.urdf" />
- <node pkg="robot_state_publisher" type="state_publisher" name="aria_state_publisher" />
- <node pkg="aria_model" type="virtual_state_publisher" name="state_publisher" />
- </group>
+  <node pkg="robot_state_publisher" type="state_publisher" name="aria_state_publisher" />
+  <node pkg="aria_model" type="virtual_state_publisher" name="state_publisher" />
 </launch>
