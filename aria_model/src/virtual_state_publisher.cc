@@ -19,11 +19,17 @@ private:
   ros::Subscriber gripper_subscriber_;
   ros::Subscriber eye_subscriber_;
   sensor_msgs::JointState joint_state_;
+  std::string ns;
 };
 
 
 AriaToJointState::AriaToJointState(ros::NodeHandle nh) {
   nh_ = nh;
+  ns = ros::this_node::getNamespace();
+  if (ns.size() == 1)
+    ns = "";
+  else if (ns.size() > 3)
+    ns = ns.substr(2,ns.size()-1) + "/";
   joint_state_publisher_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   currentor_subscriber_ = nh_.subscribe("/currentor_socket/virtual_array/position", 1, &AriaToJointState::SensorCallback, this);
   gripper_subscriber_ = nh_.subscribe("/2ndparty/virtual_array/gripper", 1, &AriaToJointState::GripperCallback, this);
@@ -35,32 +41,32 @@ AriaToJointState::AriaToJointState(ros::NodeHandle nh) {
 void AriaToJointState::Init() {
   joint_state_.name.resize(26);
   joint_state_.position.resize(26);
-  joint_state_.name[0] = "hip2";
-  joint_state_.name[1] = "hip3";
-  joint_state_.name[2] = "body";
-  joint_state_.name[3] = "arm_r_joint1";
-  joint_state_.name[4] = "arm_r_joint2";
-  joint_state_.name[5] = "arm_r_joint3";
-  joint_state_.name[6] = "arm_r_joint4";
-  joint_state_.name[7] = "arm_r_joint5";
-  joint_state_.name[8] = "arm_r_joint6";
-  joint_state_.name[9] = "arm_r_joint7";
-  joint_state_.name[10] = "arm_r_hand1";
-  joint_state_.name[11] = "arm_l_joint1";
-  joint_state_.name[12] = "arm_l_joint2";
-  joint_state_.name[13] = "arm_l_joint3";
-  joint_state_.name[14] = "arm_l_joint4";
-  joint_state_.name[15] = "arm_l_joint5";
-  joint_state_.name[16] = "arm_l_joint6";
-  joint_state_.name[17] = "arm_l_joint7";
-  joint_state_.name[18] = "arm_l_hand1";
-  joint_state_.name[19] = "neck1";
-  joint_state_.name[20] = "neck2";
-  joint_state_.name[21] = "neck3";
-  joint_state_.name[22] = "eye_r_hori";
-  joint_state_.name[23] = "eye_r_vert";
-  joint_state_.name[24] = "eye_l_hori";
-  joint_state_.name[25] = "eye_l_vert";
+  joint_state_.name[0] = ns + "hip2";
+  joint_state_.name[1] = ns + "hip3";
+  joint_state_.name[2] = ns + "body";
+  joint_state_.name[3] = ns + "arm_r_joint1";
+  joint_state_.name[4] = ns + "arm_r_joint2";
+  joint_state_.name[5] = ns + "arm_r_joint3";
+  joint_state_.name[6] = ns + "arm_r_joint4";
+  joint_state_.name[7] = ns + "arm_r_joint5";
+  joint_state_.name[8] = ns + "arm_r_joint6";
+  joint_state_.name[9] = ns + "arm_r_joint7";
+  joint_state_.name[10] = ns + "arm_r_hand1";
+  joint_state_.name[11] = ns + "arm_l_joint1";
+  joint_state_.name[12] = ns + "arm_l_joint2";
+  joint_state_.name[13] = ns + "arm_l_joint3";
+  joint_state_.name[14] = ns + "arm_l_joint4";
+  joint_state_.name[15] = ns + "arm_l_joint5";
+  joint_state_.name[16] = ns + "arm_l_joint6";
+  joint_state_.name[17] = ns + "arm_l_joint7";
+  joint_state_.name[18] = ns + "arm_l_hand1";
+  joint_state_.name[19] = ns + "neck1";
+  joint_state_.name[20] = ns + "neck2";
+  joint_state_.name[21] = ns + "neck3";
+  joint_state_.name[22] = ns + "eye_r_hori";
+  joint_state_.name[23] = ns + "eye_r_vert";
+  joint_state_.name[24] = ns + "eye_l_hori";
+  joint_state_.name[25] = ns + "eye_l_vert";
 }
 
 void AriaToJointState::SensorCallback(const std_msgs::Float32MultiArray msg) {
@@ -110,7 +116,7 @@ void AriaToJointState::Main() {
 }
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "state_publisher");
+  ros::init(argc, argv, "virtual_state_publisher");
   ros::NodeHandle nh;
   AriaToJointState aria(nh);
   ros::Rate loop_rate(30);
