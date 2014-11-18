@@ -67,7 +67,7 @@ def echo_joints(data_type):
     return msg
 
 def echo_joint(data_type, joint):
-    msg = subprocess.check_output(['rostopic', 'echo', '-n1', 
+    msg = subprocess.check_output(['rostopic', 'echo', '-n1',
                                    '/currentor_socket/sensor_array/%s/data[%d]'
                                    % (str(data_type), joint)])
     msg = re.split('\[\|]|\\n',msg)
@@ -77,6 +77,7 @@ def set_feedback(fb_type):
     msg = String()
     msg.data = '{\"method\":\"%s\",\"params\":\"[%f]\",\"id\":\"0\"}' % ('setFeedback', fb_type)
     pub_json.publish(msg)
+    time.sleep(0.1)
 
 def set_control_mode(joint, mode):
     msg = String()
@@ -137,14 +138,15 @@ def set_pid_gain(joint, p=0.0, i=0.0, d=0.0):
     time.sleep(0.1)
     ret = echo_joints('debug')
     set_feedback(feedback['kp'])
-    print echo_joints('debug')
-    print ret
+    print echo_joints('debug') #kp
+    print ret #kd
 
 
 def init_pid_gain(joint, p, i, d):
     msg = String()
     msg.data = '{\"method\":\"initPIDGain\",\"params\":\"[%d,%f,%f,%f]\",\"id\":\"1\"}' % (joint, p, i, d)
     pub_json.publish(msg)
+    time.sleep(0.1)
 
 
 def set_interpolation(interpolate_type):

@@ -1,45 +1,41 @@
 #!/bin/bash
 ariacore() {
     okay=0
-    while [ $okay -lt 19 ]
+    while [ 1 ]
     do
-	rosrun aria_utils aria pub sendZero
-	sleep 3s
-	okay=0
-	for i in {1..20}
-	do
-	    pos=$(rosrun aria_utils aria once mode $i)
-	    if [ "$(echo $pos)" == "1.0 ---" ]; then
-		echo $i" "$pos
-		okay=$((okay+1))
-	    else
-		echo -e "\e[1;31m$i missing\e[m"
-		okay=$((okay+0))
-	    fi
-	done
-    done
-    rosrun aria_utils aria apply_gain
-    sleep 3s
-    okay=0
-    while [ $okay -lt 19 ]
-    do
-    	rosrun aria_utils aria apply_gain
-    	sleep 3s
-    	okay=0
-    	echo 'please make sure feedback is set to Kp! to proceed'
-    	for i in {1..20}
-    	do
-    	    kp=$(rosrun aria_utils aria once debug $i)
-    	    if [ "$(echo $kp)" == "0.0 ---" ]; then
-		echo -e "\e[1;31m$i missing\e[m"
-    		okay=$((okay+0))
-    	    else
-    		echo $i" "$kp
-    		okay=$((okay+1))
-    	    fi
-    	done
+	rosrun aria_utils aria get_exist
+	okay=$(rosrun aria_utils aria get_exist ret)
+	if [ "$(echo $okay)" == "20 ---" ]; then
+	    echo "exist ok"
+	    break
+	else
+	    echo -e "\e[1;31m$okay done with errors\e[m"
+	fi
     done
     okay=0
+    while [ 1 ]
+    do
+	rosrun aria_utils aria apply_gain
+	okay=$(rosrun aria_utils aria apply_gain ret)
+	if [ "$(echo $okay)" == "20 ---" ]; then
+	    echo "gain ok"
+	    break
+	else
+	    echo -e "\e[1;31m$okay done with errors\e[m"
+	fi
+    done
+    okay=0
+    while [ 1 ]
+    do
+	rosrun aria_utils aria initiate
+	okay=$(rosrun aria_utils aria initiate ret)
+	if [ "$(echo $okay)" == "20 ---" ]; then
+	    echo "initate ok"
+	    break
+	else
+	    echo -e "\e[1;31m$okay done with errors\e[m"
+	fi
+    done
 }
 
 ariacore
