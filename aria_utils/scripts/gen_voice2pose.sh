@@ -5,7 +5,7 @@ then
 else
     body=''
 
-    for entry in ../motions/*.py
+    for entry in $(rospack find aria_utis)/sample_motions/*.py
     do
 	tmp="${entry##*/}"
 	body="${body}${tmp:0:${#tmp}-3}:\n"
