@@ -240,8 +240,14 @@
    (map cons #'(lambda (j b) (send j :put :bin b)) joint-list mirror-bin)
    (mapcar #'(lambda (j) (or (send j :get :bin) 0)) (send robot :joint-list)))
   (:_angle-vector
-   (&optional (vector (send robot :angle-vector)))
-   (send self :send-vector vector 'position))
+   (&optional (vector (send robot :angle-vector)) (tm 5000) ret)
+   (setf (aref joint-vector (- (length joint-vector) 1))
+	 (* 1e-3 tm))
+   (setq ret (send self :send-vector vector 'position))
+   (setf (aref joint-vector (- (length joint-vector) 1))
+	 0)
+   ret
+   )
   (:angle-vector
    (&optional (vector (send robot :angle-vector)) (tm 5000))
    (ros::publish "/aria_minjerk_interpolator/request/string";;"/aria_interpolator/position"
@@ -322,9 +328,9 @@
     (send *irtviewer* :draw-objects))))
 
 (defun model2real
-  nil
+  (&key (sleep-time 1000))
   (send *ri* :_angle-vector
-	(send *robot* :angle-vector))) ;; 3000))
+	(send *robot* :angle-vector) sleep-time)) ;; 3000))
 
 (defun real2model
   (&key (draw? t))
