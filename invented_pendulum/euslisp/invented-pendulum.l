@@ -32,8 +32,8 @@
     '(mm m r wr I g ur ux use-torso))
    (send-super* :init
 		:x x :y y :u u :maxu maxu :minu minu
-		:W (make-matrix 2 4
-				'(;;(10 0 0 0)
+		:W (make-matrix 3 4
+				'((0.1 0 0 0)
 				  (0 1 0 0)
 				  ;;(0 0 0.01 0)
 				  (0 0 0 0.01)
