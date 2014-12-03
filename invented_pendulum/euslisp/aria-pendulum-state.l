@@ -46,15 +46,17 @@
 		    :worldrot))
     (setf (aref *state-vector* 1) (calc-tilt mat))
     (setf (aref *state-vector* 3)
-	  (max
-	   (+ (* -0.5 (send (send msg :angular_velocity) :x))
-	      (* 0.5 (aref *state-vector* 3)))
-	   0))
+	  (*
+	   0.5
+	   (min
+	    (+ (* -0.5 (send (send msg :angular_velocity) :y))
+	       (* 0.5 (aref *state-vector* 3)))
+	    0)))
     (if *imu-timer*
 	(setq *imu-vel*
 	      (+ (aref *state-vector* 2)
-		 (* (send *imu-timer* :stop) ;; -0.02
-		    (send (send msg :linear_acceleration) :y)))))
+		 (* (send *imu-timer* :stop) -1
+		    (send (send msg :linear_acceleration) :x)))))
     (setq *imu-timer* (instance mtimer :init))
     ))
 
@@ -87,19 +89,21 @@
 
 (defun calc-tilt
   (rot)
-  (let* ((x_ (float-vector 0 -1 0))
+  (let* ((wheel :forward)
+	 (x_ (float-vector -1 0 0))
 	 (x (transform rot x_))
 	 (v (normalize-vector
 	     (v+
 	      (map float-vector #'* (v+ x_ #F(0 0 1))
 		   (transform rot *centroid*))
-	      #F(0 0 0.0))
+	      (float-vector (* (if (eq wheel :forward) 1e-2 -1e-1) (norm *centroid*)) 0 0.0))
 	     )))
     ;;(format t ">>>>>>>>>>>> ")
     ;;(print
-    (* (if (plusp (v. v x_)) 1 0)
+    (* (if (eq wheel :forward)
+	   (if (plusp (v. v x_)) -1 0)
+	 (if (plusp (v. v x_)) 0 1))
        (acos (v. v #F(0 0 1))))))
-
 
 (ros::subscribe "/currentor_socket/sensor_array/position"
 		std_msgs::float32multiarray

@@ -33,10 +33,10 @@
    (send-super* :init
 		:x x :y y :u u :maxu maxu :minu minu
 		:W (make-matrix 2 4
-				'(;;(10 0 0 0)
+				'(;;(0.1 0 0 0)
 				  (0 1 0 0)
 				  ;;(0 0 0.01 0)
-				  (0 0 0 0.01)
+				  (0 0 0 1e-3)
 				  ))
 		args)
    )

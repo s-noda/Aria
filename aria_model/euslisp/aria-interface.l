@@ -31,7 +31,10 @@
 	  (or
 	   (find-if #'(lambda (j) (string-equal name (send j :name)))
 		    (send rb :joint-list))
-	   (instance rotational-joint :init :child-link (make-coords))))
+	   (instance rotational-joint :init
+		     :child-link (make-coords)
+		     :min -1e+6
+		     :max +1e+6)))
       (list
        "dummy"
        "arm_r_joint1" "arm_r_joint2" "arm_r_joint3" "arm_r_joint4"
@@ -309,7 +312,7 @@
 	(send bl :copy-worldcoords)
 	:translate #F(0 0 -550) :world)
        :rotate (deg2rad -90) :x)
-      :rotate (deg2rad (* -1 90)) :z)
+      :rotate (deg2rad (* 2 90)) :z)
      :parent bl)
     ))
 

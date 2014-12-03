@@ -12,16 +12,16 @@ do
     read CMD;
     if [ "$CMD" == "i" ];
     then
-	CMD="$DEF_CMD \"{data: [-3.0, 3.0]}\" &";
+	CMD="$DEF_CMD \"{data: [-1.0, 1.0]}\" &";
     elif [ "$CMD" == "j" ]
     then
-	CMD="$DEF_CMD \"{data: [5.0, 5.0]}\" &";
+	CMD="$DEF_CMD \"{data: [1.0, 1.0]}\" &";
     elif [ "$CMD" == "k" ]
     then
-	CMD="$DEF_CMD \"{data: [3.0, -3.0]}\" &";
+	CMD="$DEF_CMD \"{data: [1.0, -1.0]}\" &";
     elif [ "$CMD" == "l" ]
     then
-	CMD="$DEF_CMD \"{data: [-5.0, -5.0]}\" &";
+	CMD="$DEF_CMD \"{data: [-1.0, -1.0]}\" &";
     else
 	CMD="$DEF_CMD \"{data: [0.0, 0.0]}\" &";
     fi;
