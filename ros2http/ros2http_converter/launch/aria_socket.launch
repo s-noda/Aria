@@ -1,12 +1,16 @@
 <launch>
+  <arg name="hostname" default="192.168.97.155"
+       doc="hostname of currentor controller board" />
   <node pkg="ros2http"
-	type="ros2http_listener.sh"
-	name="ros2http_listener" output="screen">
+        type="ros2http_listener.sh"
+        name="ros2http_listener" output="screen">
+    <param name="ARIA_SOCKET_HOSTNAME" value="$(arg hostname)" />
     <param name="ARIA_SOCKET_PORT" value="1024" />
   </node>
   <node pkg="ros2http"
-	type="currentor_socket.sh"
-	name="currentor_socket" output="screen">
+        type="currentor_socket.sh"
+        name="currentor_socket" output="screen">
+    <param name="ARIA_SOCKET_HOSTNAME" value="$(arg hostname)" />
     <param name="ARIA_SOCKET_PORT" value="1023" />
   </node>
 </launch>
