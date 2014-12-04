@@ -80,11 +80,11 @@
 		:x-callback #'(lambda (x)
 				(v+
 				 (map float-vector #'* #F(0 0 0 0) x)
-				 (map float-vector #'* #F(1 1 1 1) *x*)))
+				 (map float-vector #'* #F(0 1 0 1) *x*)))
 		:x^-callback #'(lambda (x)
 				 (v+
 				  (map float-vector #'* #F(0 0 0 0) x)
-				  (map float-vector #'* #F(0 1 1 1) *x*)))
+				  (map float-vector #'* #F(0 1 0 1) *x*)))
 		))
     (format t " x=~A/ u=~A  " (send *ip* :x^) *u*)
     ;; (cond
