@@ -7,6 +7,8 @@ import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 import org.ros.concurrent.CancellableLoop;
 import org.ros.node.parameter.ParameterTree;
+import org.ros.exception.ParameterNotFoundException;
+import org.ros.exception.ParameterClassCastException;
 
 public class CurrentorSocketNode extends SocketListener {
 
@@ -32,16 +34,30 @@ public class CurrentorSocketNode extends SocketListener {
 		// super.onStart(connectedNode);
 
 		ParameterTree params = connectedNode.getParameterTree();
-		System.out.print("[CurrentorSocket] get aria_port=");
-		if (params
-				.getInteger(connectedNode.getName() + "/ARIA_SOCKET_PORT", -1) > 0) {
-			this.portno = params.getInteger(connectedNode.getName()
-					+ "/ARIA_SOCKET_PORT", -1);
-		} else {
-			this.portno = 1024;
-		}
-		System.out.println(this.portno + " from " + connectedNode.getName()
-				+ "/ARIA_SOCKET_PORT");
+    // hostname
+    try {
+      this.hostname = params.getString(
+          connectedNode.getName() + "/ARIA_SOCKET_HOSTNAME", "192.168.97.155");
+    } catch(ParameterNotFoundException e) {
+      System.err.println("Parameter Not Found: " + e.getMessage());
+    } catch(ParameterClassCastException e) {
+      System.err.println("Cast Failed: " + e.getMessage());
+    }
+		System.out.println("[CurrentorSocket] get aria_hostname=" +
+                       this.hostname + " from " + connectedNode.getName() +
+                       "/ARIA_SOCKET_HOSTNAME");
+    // portno
+    try {
+      this.portno = params.getInteger(
+          connectedNode.getName() + "/ARIA_SOCKET_PORT", 1024);
+    } catch(ParameterNotFoundException e) {
+      System.err.println("Parameter Not Found: " + e.getMessage());
+    } catch(ParameterClassCastException e) {
+      System.err.println("Cast Failed: " + e.getMessage());
+    }
+		System.out.println("[CurrentorSocket] get aria_port=" +
+                       this.portno + " from " + connectedNode.getName() +
+                       "/ARIA_SOCKET_PORT");
 
 		System.out.print("[CurrentorSocket] get aria_com_step_time=");
 		if (params.getInteger(connectedNode.getName()
@@ -375,7 +391,7 @@ public class CurrentorSocketNode extends SocketListener {
 			}
 
 		});
-		
+
 		//this.thread = new Thread(this);
 		//this.thread.start();
 	}

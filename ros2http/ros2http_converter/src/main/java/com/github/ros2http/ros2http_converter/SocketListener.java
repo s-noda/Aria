@@ -15,23 +15,25 @@ import org.ros.node.Node;
 import org.ros.node.parameter.ParameterTree;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
+import org.ros.exception.ParameterNotFoundException;
+import org.ros.exception.ParameterClassCastException;
 
 public class SocketListener extends HttpListener implements Runnable{
 
 	protected String hostname = "192.168.97.155" ;
 	protected int portno = 1023 ;
-	
+
 	protected InetAddress addr ;
 	protected Socket socket ;
-	
+
 	protected boolean connected ;
 	protected OutputStream writer ;
 	protected InputStream reader ;
-	
+
 	protected Thread thread;
-	
+
 	private Publisher<std_msgs.String> response_pub;
-	
+
 	@Override
 	public GraphName getDefaultNodeName() {
 		return GraphName.of("ros2http_listener");
@@ -39,24 +41,41 @@ public class SocketListener extends HttpListener implements Runnable{
 
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-		
+
 		//NodeConfiguration copy = new NodeConfiguration();
-		
+
 		ParameterTree params = connectedNode.getParameterTree();
-		System.out.print("[SocketListener] get aria_port=");
-		if ( params.getInteger(connectedNode.getName()+"/ARIA_SOCKET_PORT", -1) > 0 ){
-			this.portno = params.getInteger(connectedNode.getName()+"/ARIA_SOCKET_PORT", -1);
-		} else {
-			this.portno = 1023;
-		}
-		System.out.println(this.portno + " from "+connectedNode.getName()+"/ARIA_SOCKET_PORT");
-		
+    // hostname
+    try {
+      this.hostname = params.getString(
+          connectedNode.getName() + "/ARIA_SOCKET_HOSTNAME", "192.168.97.155");
+    } catch(ParameterNotFoundException e) {
+      System.err.println("Parameter Not Found: " + e.getMessage());
+    } catch(ParameterClassCastException e) {
+      System.err.println("Cast Failed: " + e.getMessage());
+    }
+		System.out.println("[SocketListener] get aria_hostname=" +
+                       this.hostname + " from " + connectedNode.getName() +
+                       "/ARIA_SOCKET_HOSTNAME");
+    // portno
+    try {
+      this.portno = params.getInteger(
+          connectedNode.getName() + "/ARIA_SOCKET_PORT", 1023);
+    } catch(ParameterNotFoundException e) {
+      System.err.println("Parameter Not Found: " + e.getMessage());
+    } catch(ParameterClassCastException e) {
+      System.err.println("Cast Failed: " + e.getMessage());
+    }
+		System.out.println("[SocketListener] get aria_port=" +
+                       this.portno + " from " + connectedNode.getName() +
+                       "/ARIA_SOCKET_PORT");
+
 		this.response_pub =
 		        connectedNode.newPublisher("ros2http/socket_listener/reponse", std_msgs.String._TYPE);
-		
+
 		Subscriber<std_msgs.String> subscriber = connectedNode.newSubscriber(
 				"ros2http/socket_listener/json_string", std_msgs.String._TYPE);
-		
+
 		subscriber.addMessageListener(new MessageListener<std_msgs.String>() {
 			@Override
 			public void onNewMessage(std_msgs.String message) {
@@ -82,22 +101,22 @@ public class SocketListener extends HttpListener implements Runnable{
 				// System.out.println(" --- time: " + (System.currentTimeMillis()-start) + "[ms]") ;
 			}
 		}, 1);
-		
+
 		this.thread = new Thread(this);
 		this.thread.start();
 	}
-	
+
 	@Override
 	public void finalize(){
 		this.thread = null;
 	}
-	
+
 	@Override
 	public void onShutdown(Node node){
 		this.closeConnection() ;
 		this.thread = null;
 	}
-	
+
 	protected boolean openConnection(String hostname, int portno) {
 		System.out.println("[openConnection] " + hostname + ":" + portno) ;
 		try {
@@ -109,7 +128,7 @@ public class SocketListener extends HttpListener implements Runnable{
 			return (this.connected = false);
 		}
 	}
-	
+
 	protected void closeConnection(){
 		if ( this.writer != null ){
 			try {
@@ -129,7 +148,7 @@ public class SocketListener extends HttpListener implements Runnable{
 		}
 		this.connected = false ;
 	}
-	
+
 	protected String readConnection() throws IOException{
 		String ret = "" ;
 		// System.out.println("[readConnection] read " ) ;
@@ -144,7 +163,7 @@ public class SocketListener extends HttpListener implements Runnable{
 		}
 		return ret ;
 	}
-	
+
 	protected String postConnection(String data) {
 	    // System.out.println("[postConnection] send " + data) ;
 		String ret = "" ;
