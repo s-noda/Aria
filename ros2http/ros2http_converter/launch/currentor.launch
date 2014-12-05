@@ -23,7 +23,7 @@
     <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" />
   </group>
 
-  <node pkg="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
+  <node pkg="rosserial_python" type="serial_node.py" name="aria_serial_node" output="screen">
     <param name="baud" value="115200" />
     <param name="port" value="$(arg port)" />
   </node>
