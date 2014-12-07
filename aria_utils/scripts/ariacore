@@ -1,11 +1,14 @@
 #!/bin/bash
 ariacore() {
+    rosrun aria_utils aria get_size
+    size=$(rosrun aria_utils aria get_size ret)
+    echo "checking $(echo $size) joints"
     okay=0
     while [ 1 ]
     do
 	rosrun aria_utils aria get_exist
 	okay=$(rosrun aria_utils aria get_exist ret)
-	if [ "$(echo $okay)" == "20 ---" ]; then
+	if [ "$(echo $okay)" == "$(echo $size)" ]; then
 	    echo "exist ok"
 	    break
 	else
@@ -17,7 +20,7 @@ ariacore() {
     do
 	rosrun aria_utils aria apply_gain
 	okay=$(rosrun aria_utils aria apply_gain ret)
-	if [ "$(echo $okay)" == "20 ---" ]; then
+	if [ "$(echo $okay)" == "$(echo $size)" ]; then
 	    echo "gain ok"
 	    break
 	else
@@ -25,17 +28,8 @@ ariacore() {
 	fi
     done
     okay=0
-    while [ 1 ]
-    do
-	rosrun aria_utils aria initiate
-	okay=$(rosrun aria_utils aria initiate ret)
-	if [ "$(echo $okay)" == "20 ---" ]; then
-	    echo "initate ok"
-	    break
-	else
-	    echo -e "\e[1;31m$okay done with errors\e[m"
-	fi
-    done
+    rosrun aria_utils aria initiate
+    echo "initate done"
 }
 
 ariacore
