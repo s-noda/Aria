@@ -5,7 +5,7 @@ while read line
 do
     sgn[j]="$line"
     j=$(($j + 1))
-done < $(rospack find aria_utils)/settings/sgn.dat
+done < $(rospack find aria_utils)/patch/python_pathch_sgn.dat
 
 offset=()
 j=0
@@ -13,7 +13,7 @@ while read line
 do
     offset[j]="$line"
     j=$(($j + 1))
-done < $(rospack find aria_utils)/settings/offset.dat
+done < $(rospack find aria_utils)/patch/python_patch_offset.dat
 
 gen_dir="$(rospack find aria_utils)/scripts/generated"
 if [ ! -d "${gen_dir}" ]

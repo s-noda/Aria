@@ -57,7 +57,15 @@ aria() {
 	    (sleep 1.0; kill $PROC)
 	fi
     elif [ $1 = "list" ] ; then
-	echo $'aria once <torque, position, mode, velocity, temperature, debug>\naria echo <torque, position, mode, velocity, temperature, debug>\naria pub sendZero\naria pub setTorque [<joint>,<torque>]\naria pub setPosition [<joint>,<angle>]\naria pub setControlMode [<joint>,<mode>]\naria pub setTime [<time>]\naria pub setFeedback <torque, position, Kp, Kd, Ct, Cp>\naria pub gripper [<right>,<left>,<time>]\naria pub eye [<horizontal>,<vertical>,<time>]\naria pub torque [0.0,<no.1>,...,<no.29>]\naria pub position [0.0,<no.1>,...,<no.29>]\naria servo_on\naria apply_gain\naria initiate\naria servo_off\naria mode <standard, pose>'
+	echo $'aria once <torque, position, mode, velocity, temperature, debug>\naria echo <torque, position, mode, velocity, temperature, debug>\naria pub sendZero\naria pub setTorque [<joint>,<torque>]\naria pub setPosition [<joint>,<angle>]\naria pub setControlMode [<joint>,<mode>]\naria pub setTime [<time>]\naria pub setFeedback <torque, position, Kp, Kd, Ct, Cp>\naria pub gripper [<right>,<left>,<time>]\naria pub eye [<horizontal>,<vertical>,<time>]\naria pub torque [0.0,<no.1>,...,<no.29>]\naria pub position [0.0,<no.1>,...,<no.29>]\naria servo_on\naria apply_gain\naria initiate\naria servo_off\naria positive?\naria mode <standard, pose>'
+    elif [ $1 = "positive?" ] ; then
+	if [ -z "$2" ] ; then
+	    less -X -F $(rospack find aria_utils)/settings/list_positive.dat
+	else
+	    syntax=":${2}$\| ${2}$"
+	    joint_name=$(grep "$syntax" $(rospack find aria_utils)/settings/id_map.yaml | cut -d ":" -f1)
+	    grep "$joint_name" $(rospack find aria_utils)/settings/list_positive.dat | cut -d ":" -f2
+	fi
     elif [ $1 = "mode" ] ; then
 	if [ $2 = "standard" ] ; then
 	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
