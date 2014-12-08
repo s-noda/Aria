@@ -222,7 +222,7 @@ public class CurrentorSocketNode extends SocketListener {
 
 		Subscriber<std_msgs.Float32MultiArray> ctv_sub = connectedNode
 				.newSubscriber(CurrentorSocketNode.nodename
-						+ "/request/pid_vector",
+						+ "/request/ctv_vector",
 						std_msgs.Float32MultiArray._TYPE);
 		ctv_sub.addMessageListener(
 				new MessageListener<std_msgs.Float32MultiArray>() {
@@ -328,7 +328,7 @@ public class CurrentorSocketNode extends SocketListener {
 							break;
 						case CurrentorSocketNode.PID:
 							command = CurrentorUtil.encodeJsonCommand(
-									"setWheelTorques",
+									"setPIDGain",
 									CurrentorSocketNode.this.requested_data,
 									3 * CurrentorUtil.joint_cnt);
 							if (command == null) {
@@ -340,7 +340,7 @@ public class CurrentorSocketNode extends SocketListener {
 							break;
 						case CurrentorSocketNode.CTV:
 							command = CurrentorUtil.encodeJsonCommand(
-									"setWheelTorques",
+									"setCTVGain",
 									CurrentorSocketNode.this.requested_data);
 							if (command == null) {
 								command = this.default_command;
