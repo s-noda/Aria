@@ -17,6 +17,7 @@ private:
   void GripperInterpolation(const std_msgs::Float32MultiArray::ConstPtr& req);
   void EyeInterpolation(const std_msgs::Float32MultiArray::ConstPtr& req);
   void TentacleInterpolation(const std_msgs::Float32MultiArray::ConstPtr& req);
+  void VoiceEvent(const std_msgs::String::ConstPtr& req);
   boost::shared_ptr<mdl::GripperModel> gripper_model_;
   boost::shared_ptr<mdl::QuadOEyeModel> eye_model_;
   boost::shared_ptr<mdl::TentacleModel> tentacle_model_;
@@ -34,6 +35,12 @@ private:
   ros::Subscriber eye_subscriber_;
   ros::Subscriber tentacle_subscriber_;
   int _fps_;
+  // for event models
+  boost::shared_ptr<mdl::VoiceModel> voice_model_;
+  std::vector<key::KeyFrame<vec::VecVoice> > voice_key_;
+  boost::shared_ptr<key::KeyFramePlayer
+		    <vec::VecVoice, mdl::VoiceModel> > voice_player_;
+  ros::Subscriber voice_subscriber_;
   // for virtual models
   boost::shared_ptr<mdl::VirtualGripperModel> virtual_gripper_model_;
   boost::shared_ptr<mdl::VirtualQuadOEyeModel> virtual_eye_model_;
@@ -62,6 +69,9 @@ SecondPartyCore::SecondPartyCore(ros::NodeHandle &nh)
       ("/2ndparty/request/eye", 10, &SecondPartyCore::EyeInterpolation, this);
   tentacle_subscriber_ = nh_.subscribe<std_msgs::Float32MultiArray>
       ("/2ndparty/request/tentacle", 10, &SecondPartyCore::TentacleInterpolation, this);
+  //-------- for event --------
+  voice_subscriber_ = nh_.subscribe<std_msgs::String>
+    ("/2ndparty/request/voice", 10, &SecondPartyCore::VoiceEvent, this);
   // player init
   gripper_player_ = boost::shared_ptr<key::KeyFramePlayer
                                       <vec::VecGripper, mdl::GripperModel> >
@@ -110,6 +120,13 @@ SecondPartyCore::SecondPartyCore(ros::NodeHandle &nh)
                                   <vec::VecEye, mdl::VirtualQuadOEyeModel> >
       (new key::KeyFramePlayer<vec::VecEye, mdl::VirtualQuadOEyeModel>
        ("virtual_eye", eye_key_, *virtual_eye_model_, _fps_));
+  // event init
+  voice_model_
+    = boost::shared_ptr<mdl::VoiceModel>(new mdl::VoiceModel(nh));
+  voice_player_ = boost::shared_ptr<key::KeyFramePlayer
+				    <vec::VecVoice, mdl::VoiceModel> >
+    (new key::KeyFramePlayer<vec::VecVoice, mdl::VoiceModel>
+     ("voice", voice_key_, *voice_model_, _fps_));
 }
 
 void SecondPartyCore::Main()
@@ -117,6 +134,8 @@ void SecondPartyCore::Main()
   gripper_player_->OnPlay();
   eye_player_->OnPlay();
   tentacle_player_->OnPlay();
+  // event model
+  voice_player_->OnPlay();
   // play virtual model
   virtual_gripper_player_->OnPlay();
   virtual_eye_player_->OnPlay();
@@ -198,6 +217,35 @@ void SecondPartyCore::TentacleInterpolation(const std_msgs::Float32MultiArray::C
   tentacle_player_->StartPlay();
 }
 
+void SecondPartyCore::VoiceEvent(const std_msgs::String::ConstPtr &req)
+{
+  std::vector<ofVec2f> tmp;
+  voice_key_.clear();
+    voice_key_.push_back(key::KeyFrame<vec::VecVoice>
+  		       (vec::VecVoice(),
+  			vec::VecTime(0, 0),
+  			vec::VecInterpolation(1, tmp))); // "quit"
+  std::string filename;
+  std::stringstream ss;
+  ss << "rosrun aria_2ndparty wav_size.py " << req->data;
+  FILE* pipe = popen(ss.str().c_str(), "r");
+  if (!pipe)
+    return;
+  char buffer[128];
+  std::string end_time = "";
+  while(!feof(pipe)) {
+    if(fgets(buffer, 128, pipe) != NULL)
+      end_time += buffer;
+  }
+  pclose(pipe);
+  key::KeyFrame<vec::VecVoice>
+    voice(vec::VecVoice(req->data, 0.0, atof(end_time.c_str()), "1.0"),
+	  vec::VecTime(),
+	  vec::VecInterpolation(1, tmp));
+  voice_key_.push_back(voice);
+  voice_player_->Setup();
+  voice_player_->StartPlay();
+}
 
 int main(int argc, char** argv)
 {

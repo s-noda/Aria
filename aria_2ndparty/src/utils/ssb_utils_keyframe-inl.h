@@ -166,7 +166,7 @@ void KeyFramePlayer<T, T_model>::_Play2Pause(ssb_common_vec::VecEvent*) {
   if (key_list.size() == 0)
     return;
   play_ = false;
-  send_value_ = ssb_common_vec::VecVoice();
+  send_value_ = ssb_common_vec::VecEvent();
   model.set_input(send_value_);
   model.Input2Output();
   model.send();
@@ -179,7 +179,7 @@ void KeyFramePlayer<T, T_model>::_Pause2Play(ssb_common_vec::VecEvent*) {
   play_ = true;
   if (key_list.at(sequence_.at(id_of_current_sequence_).key_ref).get_part_data().msg == "quit")
     return;
-  send_value_ = ssb_common_vec::VecVoice("continue", 0, -1, "1.0");
+  send_value_ = ssb_common_vec::VecEvent("continue", 0, -1, "1.0");
   model.set_input(send_value_);
   model.Input2Output();
   model.send();
@@ -205,7 +205,7 @@ void KeyFramePlayer<T, T_model>::_PlayFrame(ssb_common_vec::VecEvent*, int frame
       send_value_ = key_list.at(sequence_.at(id_of_current_sequence_).key_ref).get_part_data();
       if (send_value_.msg == "quit")
         return;
-      ssb_common_vec::VecVoice add_amount = send_value_;
+      ssb_common_vec::VecEvent add_amount = send_value_;
       add_amount /= sequence_.at(i).number_of_frames;
       add_amount += ssb_common_vec::VecTime(add_amount.end_time, 0);      
       // expand play time
@@ -223,7 +223,7 @@ void KeyFramePlayer<T, T_model>::_PlayFrame(ssb_common_vec::VecEvent*, int frame
     }
   }
   // If frame_number is out of play range or is a non-speech("quit") frame.
-  send_value_ = ssb_common_vec::VecVoice();
+  send_value_ = ssb_common_vec::VecEvent();
   model.set_input(send_value_);
   model.Input2Output();
   model.send();
