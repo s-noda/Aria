@@ -5,7 +5,7 @@ while read line
 do
     sgn[j]="$line"
     j=$(($j + 1))
-done < $(rospack find aria_utils)/patch/python_pathch_sgn.dat
+done < $(rospack find aria_utils)/patch/python_patch_sgn.dat
 
 offset=()
 j=0
@@ -29,7 +29,7 @@ fix_pyscript() {
     sed "s/${tab}/${readtab}/g" $1 > tmp
     sed "s/${tab4}/${readtab}/g" tmp > tmp1 && mv tmp1 tmp
     sed "s/${tab8}/${readtab}/g" tmp > tmp1 && mv tmp1 tmp
-    
+
     array=()
     i=0
     while read line
@@ -100,7 +100,7 @@ def="${def:0:${#def}-1}"
 def="${def}}\n"
 
 body="$header$packages$def"
-body="${body}\ndef callback(msg):\n\tmotions[msg.data]()\n\n"
+body="${body}\ndef callback(msg):\n\tmotions[msg.data]()\n\ttime.sleep(4.0)\n\tmotions['reset']()\n"
 
 main="if __name__ == '__main__':"
 main="${main}\n\trospy.init_node('motion_runner',anonymous=True)\n\trospy.Subscriber('/aria/commandline',String,callback)\n\trospy.spin()"
