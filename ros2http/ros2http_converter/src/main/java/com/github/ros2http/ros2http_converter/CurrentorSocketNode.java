@@ -1,5 +1,7 @@
 package com.github.ros2http.ros2http_converter;
 
+import java.util.ArrayList;
+
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.ConnectedNode;
@@ -34,30 +36,29 @@ public class CurrentorSocketNode extends SocketListener {
 		// super.onStart(connectedNode);
 
 		ParameterTree params = connectedNode.getParameterTree();
-    // hostname
-    try {
-      this.hostname = params.getString(
-          connectedNode.getName() + "/ARIA_SOCKET_HOSTNAME", "192.168.97.155");
-    } catch(ParameterNotFoundException e) {
-      System.err.println("Parameter Not Found: " + e.getMessage());
-    } catch(ParameterClassCastException e) {
-      System.err.println("Cast Failed: " + e.getMessage());
-    }
-		System.out.println("[CurrentorSocket] get aria_hostname=" +
-                       this.hostname + " from " + connectedNode.getName() +
-                       "/ARIA_SOCKET_HOSTNAME");
-    // portno
-    try {
-      this.portno = params.getInteger(
-          connectedNode.getName() + "/ARIA_SOCKET_PORT", 1024);
-    } catch(ParameterNotFoundException e) {
-      System.err.println("Parameter Not Found: " + e.getMessage());
-    } catch(ParameterClassCastException e) {
-      System.err.println("Cast Failed: " + e.getMessage());
-    }
-		System.out.println("[CurrentorSocket] get aria_port=" +
-                       this.portno + " from " + connectedNode.getName() +
-                       "/ARIA_SOCKET_PORT");
+		// hostname
+		try {
+			this.hostname = params.getString(connectedNode.getName()
+					+ "/ARIA_SOCKET_HOSTNAME", "192.168.97.155");
+		} catch (ParameterNotFoundException e) {
+			System.err.println("Parameter Not Found: " + e.getMessage());
+		} catch (ParameterClassCastException e) {
+			System.err.println("Cast Failed: " + e.getMessage());
+		}
+		System.out.println("[CurrentorSocket] get aria_hostname="
+				+ this.hostname + " from " + connectedNode.getName()
+				+ "/ARIA_SOCKET_HOSTNAME");
+		// portno
+		try {
+			this.portno = params.getInteger(connectedNode.getName()
+					+ "/ARIA_SOCKET_PORT", 1024);
+		} catch (ParameterNotFoundException e) {
+			System.err.println("Parameter Not Found: " + e.getMessage());
+		} catch (ParameterClassCastException e) {
+			System.err.println("Cast Failed: " + e.getMessage());
+		}
+		System.out.println("[CurrentorSocket] get aria_port=" + this.portno
+				+ " from " + connectedNode.getName() + "/ARIA_SOCKET_PORT");
 
 		System.out.print("[CurrentorSocket] get aria_com_step_time=");
 		if (params.getInteger(connectedNode.getName()
@@ -392,8 +393,8 @@ public class CurrentorSocketNode extends SocketListener {
 
 		});
 
-		//this.thread = new Thread(this);
-		//this.thread.start();
+		// this.thread = new Thread(this);
+		// this.thread.start();
 	}
 
 	private void publishSensors() {
