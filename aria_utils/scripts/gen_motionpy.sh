@@ -60,6 +60,17 @@ fix_pyscript() {
 	    replace="${replace:0:${#replace}-1}"
 	    replace="${replace}])"
 	    body="${body}${replace}\n"
+	elif [[ $e == *"time.sleep"* ]]
+	then
+	    idx=${#sgn[@]}
+	    idx=$(echo "$idx - 1" | bc | awk '{printf "%d", $0}')
+	    line="${e##*(}"
+	    replace=$(cut -d '(' -f 1 <<< "$e")
+	    replace="${replace}("
+	    i="${line:0:${#line}-1}"
+	    val=$(echo "$i * ${sgn[${idx}]}" | bc | awk '{printf "%f", $0}')
+	    replace="${replace}${val})"
+	    body="${body}${replace}\n"
 	else
 	    body="${body}${e}\n"
 	fi
@@ -100,7 +111,7 @@ def="${def:0:${#def}-1}"
 def="${def}}\n"
 
 body="$header$packages$def"
-body="${body}\ndef callback(msg):\n\tmotions[msg.data]()\n\ttime.sleep(4.0)\n\tmotions['reset']()\n"
+body="${body}\ndef callback(msg):\n\tmotions[msg.data]()\n\ttime.sleep(4.0)\n\tmotions['reset']()\n\n"
 
 main="if __name__ == '__main__':"
 main="${main}\n\trospy.init_node('motion_runner',anonymous=True)\n\trospy.Subscriber('/aria/commandline',String,callback)\n\trospy.spin()"
