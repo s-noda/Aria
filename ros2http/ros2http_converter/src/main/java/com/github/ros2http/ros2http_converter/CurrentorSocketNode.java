@@ -36,6 +36,12 @@ public class CurrentorSocketNode extends SocketListener {
 			this.mode = mode;
 			this.requested_data = rd;
 		}
+
+	    public void dump(){
+		int size = -1;
+		if ( this.requested_data != null ) size = this.requested_data.length;
+		System.out.println("  -- " + this.mode + " len:" + size);
+	    }
 	}
 
 	public void vectorCommandEnqueue(int mode, float[] rd){
@@ -298,6 +304,9 @@ public class CurrentorSocketNode extends SocketListener {
 							mode = data.mode;
 							requested_data = data.requested_data;
 						}
+						for ( CurrentorVectorCommand d : CurrentorSocketNode.this.vectorCommand ){
+						    d.dump();
+						}
 						switch (mode) {
 						case CurrentorSocketNode.TRQ:
 							command = CurrentorUtil.encodeJsonCommand(
@@ -407,6 +416,9 @@ public class CurrentorSocketNode extends SocketListener {
 							ros_res.setData(res);
 							CurrentorSocketNode.this.currentor_socket_status
 									.publish(ros_res);
+						} else {
+						    CurrentorSocketNode.this.vectorCommandEnqueue(
+									mode, requested_data);
 						}
 						CurrentorSocketNode.this.publishSensors();
 					} else {
