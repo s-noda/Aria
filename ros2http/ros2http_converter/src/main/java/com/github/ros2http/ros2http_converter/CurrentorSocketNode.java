@@ -1,5 +1,7 @@
 package com.github.ros2http.ros2http_converter;
 
+import java.util.ArrayList;
+
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.ConnectedNode;
@@ -19,11 +21,42 @@ public class CurrentorSocketNode extends SocketListener {
 
 	final private static int NOP = 0, TRQ = 1, POS = 2, MOD = 3, TMAX = 4,
 			TMIN = 5, WHL = 6, PID = 7, CTV = 8;
-	private int mode;
-	private float[] requested_data;
+	//private int mode;
+	//private float[] requested_data;
 	private long last_request_time;
 	private long com_step_time;
+	
+	private ArrayList<CurrentorVectorCommand> vectorCommand = new ArrayList<CurrentorVectorCommand>();
 
+	public class CurrentorVectorCommand {
+		public int mode;
+		public float[] requested_data;
+
+		public CurrentorVectorCommand(int mode, float[] rd) {
+			this.mode = mode;
+			this.requested_data = rd;
+		}
+
+	    public void dump(){
+		int size = -1;
+		if ( this.requested_data != null ) size = this.requested_data.length;
+		System.out.println("  -- " + this.mode + " len:" + size);
+	    }
+	}
+
+	public void vectorCommandEnqueue(int mode, float[] rd){
+		this.vectorCommand.add(new CurrentorVectorCommand(mode,rd));
+		while ( this.vectorCommand.size() > 5 ){
+			this.vectorCommand.remove(0);
+		}
+	}
+
+	public CurrentorVectorCommand vectorCommandPop(){
+		CurrentorVectorCommand ret = null;
+		if ( this.vectorCommand.size() > 0 ) ret = this.vectorCommand.remove(0);
+		return ret;
+	}
+	
 	@Override
 	public GraphName getDefaultNodeName() {
 		return GraphName.of(CurrentorSocketNode.nodename);
@@ -34,30 +67,29 @@ public class CurrentorSocketNode extends SocketListener {
 		// super.onStart(connectedNode);
 
 		ParameterTree params = connectedNode.getParameterTree();
-    // hostname
-    try {
-      this.hostname = params.getString(
-          connectedNode.getName() + "/ARIA_SOCKET_HOSTNAME", "192.168.97.155");
-    } catch(ParameterNotFoundException e) {
-      System.err.println("Parameter Not Found: " + e.getMessage());
-    } catch(ParameterClassCastException e) {
-      System.err.println("Cast Failed: " + e.getMessage());
-    }
-		System.out.println("[CurrentorSocket] get aria_hostname=" +
-                       this.hostname + " from " + connectedNode.getName() +
-                       "/ARIA_SOCKET_HOSTNAME");
-    // portno
-    try {
-      this.portno = params.getInteger(
-          connectedNode.getName() + "/ARIA_SOCKET_PORT", 1024);
-    } catch(ParameterNotFoundException e) {
-      System.err.println("Parameter Not Found: " + e.getMessage());
-    } catch(ParameterClassCastException e) {
-      System.err.println("Cast Failed: " + e.getMessage());
-    }
-		System.out.println("[CurrentorSocket] get aria_port=" +
-                       this.portno + " from " + connectedNode.getName() +
-                       "/ARIA_SOCKET_PORT");
+		// hostname
+		try {
+			this.hostname = params.getString(connectedNode.getName()
+					+ "/ARIA_SOCKET_HOSTNAME", "192.168.97.155");
+		} catch (ParameterNotFoundException e) {
+			System.err.println("Parameter Not Found: " + e.getMessage());
+		} catch (ParameterClassCastException e) {
+			System.err.println("Cast Failed: " + e.getMessage());
+		}
+		System.out.println("[CurrentorSocket] get aria_hostname="
+				+ this.hostname + " from " + connectedNode.getName()
+				+ "/ARIA_SOCKET_HOSTNAME");
+		// portno
+		try {
+			this.portno = params.getInteger(connectedNode.getName()
+					+ "/ARIA_SOCKET_PORT", 1024);
+		} catch (ParameterNotFoundException e) {
+			System.err.println("Parameter Not Found: " + e.getMessage());
+		} catch (ParameterClassCastException e) {
+			System.err.println("Cast Failed: " + e.getMessage());
+		}
+		System.out.println("[CurrentorSocket] get aria_port=" + this.portno
+				+ " from " + connectedNode.getName() + "/ARIA_SOCKET_PORT");
 
 		System.out.print("[CurrentorSocket] get aria_com_step_time=");
 		if (params.getInteger(connectedNode.getName()
@@ -70,7 +102,7 @@ public class CurrentorSocketNode extends SocketListener {
 		System.out.println(this.com_step_time + " from "
 				+ connectedNode.getName() + "/ARIA_SOCKET_COM_STEP_TIME");
 
-		this.mode = CurrentorSocketNode.NOP;
+		//this.mode = CurrentorSocketNode.NOP;
 		this.last_request_time = System.currentTimeMillis();
 
 		this.sensor_pub = new Publisher[CurrentorUtil.sensor_names.length];
@@ -100,9 +132,8 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- torque command received "
 									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
 									+ "ms");
-							CurrentorSocketNode.this.mode = CurrentorSocketNode.TRQ;
-							CurrentorSocketNode.this.requested_data = arg
-									.getData();
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.TRQ, arg.getData());
 							CurrentorSocketNode.this.last_request_time = System
 									.currentTimeMillis();
 						}
@@ -121,9 +152,8 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- torque command received "
 									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
 									+ "ms");
-							CurrentorSocketNode.this.mode = CurrentorSocketNode.WHL;
-							CurrentorSocketNode.this.requested_data = arg
-									.getData();
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.WHL, arg.getData());
 							CurrentorSocketNode.this.last_request_time = System
 									.currentTimeMillis();
 						}
@@ -142,9 +172,8 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- position command received "
 									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
 									+ "ms");
-							CurrentorSocketNode.this.mode = CurrentorSocketNode.POS;
-							CurrentorSocketNode.this.requested_data = arg
-									.getData();
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.POS, arg.getData());
 							CurrentorSocketNode.this.last_request_time = System
 									.currentTimeMillis();
 						}
@@ -163,9 +192,8 @@ public class CurrentorSocketNode extends SocketListener {
 							System.out.println(" -- mode command received "
 									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
 									+ "ms");
-							CurrentorSocketNode.this.mode = CurrentorSocketNode.MOD;
-							CurrentorSocketNode.this.requested_data = arg
-									.getData();
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.MOD, arg.getData());
 							CurrentorSocketNode.this.last_request_time = System
 									.currentTimeMillis();
 						}
@@ -181,9 +209,13 @@ public class CurrentorSocketNode extends SocketListener {
 					@Override
 					public void onNewMessage(std_msgs.Float32MultiArray arg) {
 						synchronized (CurrentorSocketNode.this) {
-							CurrentorSocketNode.this.mode = CurrentorSocketNode.TMAX;
-							CurrentorSocketNode.this.requested_data = arg
-									.getData();
+							System.out.println(" -- tmax command received "
+									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
+									+ "ms");
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.TMAX, arg.getData());
+							CurrentorSocketNode.this.last_request_time = System
+									.currentTimeMillis();
 						}
 					}
 				}, 1);
@@ -197,9 +229,13 @@ public class CurrentorSocketNode extends SocketListener {
 					@Override
 					public void onNewMessage(std_msgs.Float32MultiArray arg) {
 						synchronized (CurrentorSocketNode.this) {
-							CurrentorSocketNode.this.mode = CurrentorSocketNode.TMIN;
-							CurrentorSocketNode.this.requested_data = arg
-									.getData();
+							System.out.println(" -- tmin command received "
+									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
+									+ "ms");
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.TMIN, arg.getData());
+							CurrentorSocketNode.this.last_request_time = System
+									.currentTimeMillis();
 						}
 					}
 				}, 1);
@@ -213,9 +249,13 @@ public class CurrentorSocketNode extends SocketListener {
 					@Override
 					public void onNewMessage(std_msgs.Float32MultiArray arg) {
 						synchronized (CurrentorSocketNode.this) {
-							CurrentorSocketNode.this.mode = CurrentorSocketNode.PID;
-							CurrentorSocketNode.this.requested_data = arg
-									.getData();
+							System.out.println(" -- pid command received "
+									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
+									+ "ms");
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.PID, arg.getData());
+							CurrentorSocketNode.this.last_request_time = System
+									.currentTimeMillis();
 						}
 					}
 				}, 1);
@@ -229,9 +269,13 @@ public class CurrentorSocketNode extends SocketListener {
 					@Override
 					public void onNewMessage(std_msgs.Float32MultiArray arg) {
 						synchronized (CurrentorSocketNode.this) {
-							CurrentorSocketNode.this.mode = CurrentorSocketNode.CTV;
-							CurrentorSocketNode.this.requested_data = arg
-									.getData();
+							System.out.println(" -- ctv command received "
+									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
+									+ "ms");
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.CTV, arg.getData());
+							CurrentorSocketNode.this.last_request_time = System
+									.currentTimeMillis();
 						}
 					}
 				}, 1);
@@ -253,11 +297,21 @@ public class CurrentorSocketNode extends SocketListener {
 									CurrentorSocketNode.this.portno)) {
 						String res;
 						String command;
-						switch (CurrentorSocketNode.this.mode) {
+						int mode = CurrentorSocketNode.NOP;
+						float[] requested_data = null;
+						CurrentorVectorCommand data = CurrentorSocketNode.this.vectorCommandPop();
+						if ( data != null ){
+							mode = data.mode;
+							requested_data = data.requested_data;
+						}
+						for ( CurrentorVectorCommand d : CurrentorSocketNode.this.vectorCommand ){
+						    d.dump();
+						}
+						switch (mode) {
 						case CurrentorSocketNode.TRQ:
 							command = CurrentorUtil.encodeJsonCommand(
 									"setTorques",
-									CurrentorSocketNode.this.requested_data);
+									requested_data);
 							if (command == null) {
 								command = this.default_command;
 								System.out
@@ -269,7 +323,7 @@ public class CurrentorSocketNode extends SocketListener {
 						case CurrentorSocketNode.WHL:
 							command = CurrentorUtil.encodeJsonCommand(
 									"setWheelTorques",
-									CurrentorSocketNode.this.requested_data, 2);
+									requested_data, 2);
 							if (command == null) {
 								command = this.default_command;
 								System.out
@@ -281,7 +335,7 @@ public class CurrentorSocketNode extends SocketListener {
 						case CurrentorSocketNode.POS:
 							command = CurrentorUtil.encodeJsonCommand(
 									"setPositions",
-									CurrentorSocketNode.this.requested_data);
+									requested_data);
 							if (command == null) {
 								command = this.default_command;
 								System.out
@@ -293,7 +347,7 @@ public class CurrentorSocketNode extends SocketListener {
 						case CurrentorSocketNode.MOD:
 							command = CurrentorUtil.encodeJsonCommand(
 									"setControlModes",
-									CurrentorSocketNode.this.requested_data);
+									requested_data);
 							if (command == null) {
 								command = this.default_command;
 								System.out
@@ -305,7 +359,7 @@ public class CurrentorSocketNode extends SocketListener {
 						case CurrentorSocketNode.TMAX:
 							command = CurrentorUtil.encodeJsonCommand(
 									"setMaxLimit",
-									CurrentorSocketNode.this.requested_data);
+									requested_data);
 							if (command == null) {
 								command = this.default_command;
 								System.out
@@ -317,7 +371,7 @@ public class CurrentorSocketNode extends SocketListener {
 						case CurrentorSocketNode.TMIN:
 							command = CurrentorUtil.encodeJsonCommand(
 									"setMinLimit",
-									CurrentorSocketNode.this.requested_data);
+									requested_data);
 							if (command == null) {
 								command = this.default_command;
 								System.out
@@ -329,7 +383,7 @@ public class CurrentorSocketNode extends SocketListener {
 						case CurrentorSocketNode.PID:
 							command = CurrentorUtil.encodeJsonCommand(
 									"setPIDGain",
-									CurrentorSocketNode.this.requested_data,
+									requested_data,
 									3 * CurrentorUtil.joint_cnt);
 							if (command == null) {
 								command = this.default_command;
@@ -341,7 +395,7 @@ public class CurrentorSocketNode extends SocketListener {
 						case CurrentorSocketNode.CTV:
 							command = CurrentorUtil.encodeJsonCommand(
 									"setCTVGain",
-									CurrentorSocketNode.this.requested_data);
+									requested_data);
 							if (command == null) {
 								command = this.default_command;
 								System.out.println(" -- ct command rejected/");
@@ -355,7 +409,6 @@ public class CurrentorSocketNode extends SocketListener {
 									.postConnection(this.default_command);
 							break;
 						}
-						CurrentorSocketNode.this.mode = CurrentorSocketNode.NOP;
 						//
 						if (CurrentorUtil.decodeJsonCommand(res)) {
 							std_msgs.String ros_res = CurrentorSocketNode.this.currentor_socket_status
@@ -363,6 +416,9 @@ public class CurrentorSocketNode extends SocketListener {
 							ros_res.setData(res);
 							CurrentorSocketNode.this.currentor_socket_status
 									.publish(ros_res);
+						} else {
+						    CurrentorSocketNode.this.vectorCommandEnqueue(
+									mode, requested_data);
 						}
 						CurrentorSocketNode.this.publishSensors();
 					} else {
@@ -392,8 +448,8 @@ public class CurrentorSocketNode extends SocketListener {
 
 		});
 
-		//this.thread = new Thread(this);
-		//this.thread.start();
+		// this.thread = new Thread(this);
+		// this.thread.start();
 	}
 
 	private void publishSensors() {
