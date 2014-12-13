@@ -20,7 +20,7 @@ public class CurrentorSocketNode extends SocketListener {
 	private Publisher<std_msgs.String> currentor_socket_status;
 
 	final private static int NOP = 0, TRQ = 1, POS = 2, MOD = 3, TMAX = 4,
-			TMIN = 5, WHL = 6, PID = 7, CTV = 8;
+	    TMIN = 5, WHL = 6, PID = 7, CTV = 8, DTQ = 9;
 	//private int mode;
 	//private float[] requested_data;
 	private long last_request_time;
@@ -280,6 +280,26 @@ public class CurrentorSocketNode extends SocketListener {
 					}
 				}, 1);
 
+		Subscriber<std_msgs.Float32MultiArray> dtq_sub = connectedNode
+				.newSubscriber(CurrentorSocketNode.nodename
+						+ "/request/torque_combined_vector",
+						std_msgs.Float32MultiArray._TYPE);
+		dtq_sub.addMessageListener(
+				new MessageListener<std_msgs.Float32MultiArray>() {
+					@Override
+					public void onNewMessage(std_msgs.Float32MultiArray arg) {
+						synchronized (CurrentorSocketNode.this) {
+							System.out.println(" -- dtorque command received "
+									+ (System.currentTimeMillis() - CurrentorSocketNode.this.last_request_time)
+									+ "ms");
+							CurrentorSocketNode.this.vectorCommandEnqueue(
+									CurrentorSocketNode.DTQ, arg.getData());
+							CurrentorSocketNode.this.last_request_time = System
+									.currentTimeMillis();
+						}
+					}
+				}, 1);
+
 		connectedNode.executeCancellableLoop(new CancellableLoop() {
 			private long last_time = System.currentTimeMillis();
 			private long step = CurrentorSocketNode.this.com_step_time;
@@ -316,6 +336,18 @@ public class CurrentorSocketNode extends SocketListener {
 								command = this.default_command;
 								System.out
 										.println(" -- Torque command rejected/");
+							}
+							res = CurrentorSocketNode.this
+									.postConnection(command);
+							break;
+						case CurrentorSocketNode.DTQ:
+							command = CurrentorUtil.encodeJsonCommand(
+									"setTorquesCombined",
+									requested_data);
+							if (command == null) {
+								command = this.default_command;
+								System.out
+										.println(" -- DTorque command rejected/");
 							}
 							res = CurrentorSocketNode.this
 									.postConnection(command);
