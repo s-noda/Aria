@@ -12,6 +12,10 @@
 (defvar *aria*)
 (defvar *robot*)
 
+;; added by ssb
+(defvar *root-accel* (float-vector 0 0 0))
+;; added by ssb
+
 (defclass aria-interface
   :super object
   :slots (robot imu-coords joint-cnt
@@ -51,7 +55,7 @@
       1 1 1 -1 -1 -1 -1
       1 1 1 -1 +1 -1 +1
       1 1 1
-      1 0.5 0.5
+      1 0.5 -0.5
       1 1))
     (viewer? nil)
     )
@@ -69,7 +73,10 @@
    ;;
    (ros::roseus "aria_interface")
    ;;
+   ;; test ssb
    (ros::subscribe "/currentor_socket/sensor_array/position"
+		   ;;   (ros::subscribe "/currentor_socket/sensor_array/debug"
+		   ;; test ssb
 		   std_msgs::float32multiarray
 		   #'send self :position-callback
 		   1)
@@ -94,6 +101,9 @@
 		   #'send self :imu-callback
 		   1)
    ;;
+   ;; added by ssb
+   (ros::subscribe "/root_force/virtual_array/spacial" std_msgs::Float32MultiArray #'send self :root-accel-callback)
+   ;; added by ssb
    (ros::advertise "/currentor_socket/request/mode_vector"
 		   std_msgs::float32multiarray)
    (ros::advertise "/currentor_socket/request/position_vector"
@@ -105,6 +115,8 @@
    (ros::advertise "/currentor_socket/request/torque_max_vector"
 		   std_msgs::float32multiarray)
    (ros::advertise "/currentor_socket/request/torque_min_vector"
+		   std_msgs::float32multiarray)
+   (ros::advertise "/currentor_socket/request/torque_combined_vector"
 		   std_msgs::float32multiarray)
    (ros::advertise "/aria_interpolator/position"
 		   std_msgs::string)
@@ -120,21 +132,21 @@
        (ros::sleep)
        (ros::spin-once)))
      (case (car args)
-	   ((:potentio-vector :angle-vector)
-	    (map float-vector
-		 #'(lambda (j) (or (send j :get 'position) 0))
-		 (send robot :joint-list)))
-	   (:torque-vector
-	    (map float-vector
-		 #'(lambda (j) (or (send j :get 'torque) 0))
-		 (send robot :joint-list)))
-	   (:mode-vector
-	    (map float-vector
-		 #'(lambda (j) (or (send j :get 'mode) 0))
-		 (send robot :joint-list)))
-	   (:worldcoords
-	    (copy-object (send robot :worldcoords)))
-	   )))
+       ((:potentio-vector :angle-vector)
+	(map float-vector
+	     #'(lambda (j) (or (send j :get 'position) 0))
+	     (send robot :joint-list)))
+       (:torque-vector
+	(map float-vector
+	     #'(lambda (j) (or (send j :get 'torque) 0))
+	     (send robot :joint-list)))
+       (:mode-vector
+	(map float-vector
+	     #'(lambda (j) (or (send j :get 'mode) 0))
+	     (send robot :joint-list)))
+       (:worldcoords
+	(copy-object (send robot :worldcoords)))
+       )))
   (:callback-org
    (msg
     &key
@@ -195,6 +207,8 @@
 	  (mat (quaternion2matrix
 		(float-vector (send ori :w) (send ori :x)
 			      (send ori :y) (send ori :z))))
+	  ;; (rpy (map cons #'* '(1 -1 1) (car (rpy-angle mat)))) ;; agry fix
+	  ;; (tmp-coords (make-coords :rpy rpy))
 	  (tmp-coords (make-coords :rot mat))
 	  (move-coords (copy-object (send (send robot :get :imu-coords) :worldcoords)))
 	  )
@@ -211,6 +225,11 @@
 	     :color #f(1 0 0) :size 100 :width 100)
        ))
      ))
+  ;; added by ssb
+  (:root-accel-callback
+   (msg)
+   (setq *root-accel* (send msg :data)))
+  ;; added by ssb
   (:send-vector
    (&optional
     (vector (send robot :angle-vector))
@@ -222,6 +241,7 @@
 		      ((eq command 'torque) (* bin-1 -9.8))
 		      ((eq command 'torque_max) (* bin-1 -9.8))
 		      ((eq command 'torque_min) (* bin-1 -9.8))
+		      ((eq command 'torque_combined) (* bin-1 -9.8))
 		      ((eq command 'position) (* bin-1 (deg2rad 1)))
 		      (t 1))))
 	       mirror-bin))
@@ -271,19 +291,22 @@
 		 (instance std_msgs::float32multiarray
 			   :init
 			   :data vector)))
-   ;; (ros::publish "/aria_minjerk_interpolator/request/string";;"/aria_interpolator/position"
-   ;; 		 (instance std_msgs::string
-   ;; 			   :init
-   ;; 			   :data (format nil "(~A ~A)" vector tm))))
+  ;; (ros::publish "/aria_minjerk_interpolator/request/string";;"/aria_interpolator/position"
+  ;; 		 (instance std_msgs::string
+  ;; 			   :init
+  ;; 			   :data (format nil "(~A ~A)" vector tm))))
   (:torque-vector
    (&optional (vector (send robot :torque-vector)))
    (send self :send-vector vector 'torque))
-  (:torque-max-vector
+  ;; (:torque-max-vector
+  ;;  (&optional (vector (send robot :torque-vector)))
+  ;;  (send self :send-vector vector 'torque_max))
+  ;; (:torque-min-vector
+  ;;  (&optional (vector (send robot :torque-vector)))
+  ;;  (send self :send-vector vector 'torque_min))
+  (:torque-combined-vector
    (&optional (vector (send robot :torque-vector)))
-   (send self :send-vector vector 'torque_max))
-  (:torque-min-vector
-   (&optional (vector (send robot :torque-vector)))
-   (send self :send-vector vector 'torque_min))
+   (send self :send-vector vector 'torque_combined))
   (:mode-vector
    (&optional (vector (scale 0 (send robot :angle-vector))))
    (send self :send-vector vector 'mode))
@@ -293,6 +316,8 @@
 (defun gen-aria-imu-coords
   (robot)
   (let* ((bl (find-if #'(lambda (a) (string-equal (send a :name) "body_link"))
+		      (send robot :links)))
+	 (pl (find-if #'(lambda (a) (string-equal (send a :name) "hip2_link"))
 		      (send robot :links))))
     ;; (make-cascoords
     ;; 	:name "imu_coords"
@@ -312,8 +337,8 @@
 	(send bl :copy-worldcoords)
 	:translate #F(0 0 -550) :world)
        :rotate (deg2rad -90) :x)
-      :rotate (deg2rad (* 2 90)) :z)
-     :parent bl)
+      :rotate (deg2rad (* -2 90)) :z)
+     :parent pl)
     ))
 
 (defun aria-init
@@ -344,9 +369,100 @@
   (if draw? (send *viewer* :draw-objects))
   )
 
+(defun tablet-pose
+  nil
+  (send *robot* :angle-vector #f(0.0 1.69744 32.5919 -95.2269 -64.5411 15.3429 -28.6477 -37.4261 -24.0 -6.98202 -11.2998 -70.5728 2.45552 -11.4646 -42.0954 2.31269 0.052183 10.0 -6.02618 1.07119 2.86203 -2.36763)))
+
+
+(defmethod bodyset-link
+  (:force (&optional f) (if f (setq force f) force))
+  (:moment (&optional m) (if m (setq moment m) moment))
+  (:angular-velocity (&optional av)
+		     (if av (setq angular-velocity av) angular-velocity))
+  (:angular-acceleration (&optional aa)
+			 (if aa (setq angular-acceleration aa) angular-acceleration))
+  (:spacial-velocity (&optional sv)
+		     (if sv (setq spacial-velocity sv) spacial-velocity))
+  (:spacial-acceleration (&optional sa)
+			 (if sa (setq spacial-acceleration sa) spacial-acceleration))
+  )
+
+(defmethod robot-model
+  (:torque-vector2
+   (&key (contact-states
+	  (mapcar
+	   #'(lambda (k)
+	       (list
+		(cons :link (send self k :end-coords :parent))
+		(cons :worldcoords
+		      (copy-object (send self k :end-coords :worldcoords)))
+		(cons :ext-force (float-vector 0 0 0))
+		(cons :ext-moment (float-vector 0 0 0))))
+	   '(:rarm :larm)))
+;	 (gravity; #F(0 0 0))
+;	  (scale (* 1e-3 9.8 (send self :weight))
+;		 #F(0 0 -1)))
+	 (root-angular-velocity (float-vector 0 0 0))
+	 (root-spacial-velocity (float-vector 0 0 0))
+	 (root-angular-acceleration (float-vector 0 0 0))
+	 (root-spacial-acceleration (float-vector 0 0 0))
+	 (root-link (car (send self :links)))
+         ret
+	 (debug-view nil)
+         (jvv (instantiate float-vector (calc-target-joint-dimension joint-list)))
+         (jav (instantiate float-vector (calc-target-joint-dimension joint-list)))
+         (calc-torque-buffer-args (send self :calc-torque-buffer-args))
+	 (debug? nil))
+;   (send (car (send self :links)) :force gravity)
+   (mapcar #'(lambda (cs)
+               (send (cdr (assoc :link cs)) :ext-force
+		     (or (cdr (assoc :ext-force cs)) (float-vector 0 0 0)))
+               (let* ((moment-offset
+		       (v* (scale 1e-3
+				  (send (cdr (assoc :worldcoords cs))
+					:worldpos))
+			   (or (cdr (assoc :ext-force cs)) (float-vector 0 0 0)))))
+		 (send (cdr (assoc :link cs)) :ext-moment
+		       (v+ moment-offset (or (cdr (assoc :ext-moment cs))
+					     (float-vector 0 0 0))))))
+	   contact-states)
+   (setq
+    ret
+    (send self :calc-torque-from-vel-acc
+	  :debug-view debug-view
+	  :root-angular-acceleration root-angular-acceleration
+	  :root-angular-velocity root-angular-velocity
+	  :root-spacial-acceleration root-spacial-acceleration
+	  :root-spacial-velocity root-spacial-velocity
+	  :jvv jvv
+	  :jav jav
+	  :calc-torque-buffer-args calc-torque-buffer-args))
+   (cond
+    ((and debug?
+	  (>
+	   (norm
+	    (concatenate
+	     float-vector
+	     (send root-link :force)
+	     (send root-link :moment)))
+	   1))
+     (format t "[torque-vector2] root force detected ~A >1~%"
+	     (concatenate
+	      float-vector
+	      (send root-link :force)
+	      (send root-link :moment)))))
+   ret
+   )
+  )
+
+
 (defun cancel-gravity
-  (&key (hz 50)
+;;  (&key (hz 50)
+  (&key (hz 20)
 	(send-torque? t)
+;; added by ssb
+;;	(root-accel (float-vector 0 0 0))
+;; added by ssb
 	(torque-limit?))
   (if (and torque-limit? (not (numberp torque-limit?)))
       (setq torque-limit? 0.001))
@@ -377,31 +493,58 @@
 	 (x::window-main-one)
 	 (cond
 	  ((send *ri* :get-val 'position-updated)
+	   ;; (setq tv
+	   ;; 	 (send *robot* :calc-torque
+	   ;; 	       :target-coords (list (send *robot* :rarm :end-coords)
+	   ;; 				    (send *robot* :larm :end-coords))
+	   ;; 	       :force-list (list #F(0 0 0) #F(0 0 0))
+	   ;; 	       :moment-list (list #F(0 0 0) #F(0 0 0))
+	   ;; 	       ))
 	   (setq tv
-		 (send *robot* :calc-torque
-		       :target-coords (list (send *robot* :rarm :end-coords)
-					    (send *robot* :larm :end-coords))
-		       :force-list (list #F(0 0 0) #F(0 0 0))
-		       :moment-list (list #F(0 0 0) #F(0 0 0))
+		 (send *robot* :torque-vector2
+		       :contact-states
+		       (mapcar
+			#'(lambda (cs f m)
+			    (list
+			     (cons :link (send cs :parent))
+			     (cons :worldcoords (send cs :copy-worldcoords))
+			     (cons :ext-force f)
+			     (cons :ext-moment m)))
+			(list (send *robot* :rarm :end-coords)
+			      (send *robot* :larm :end-coords))
+			(list #F(0 0 0) #F(0 0 0))
+			(list #F(0 0 0) #F(0 0 0)))
+		       :root-angular-velocity (float-vector 0 0 0)
+		       :root-spacial-velocity (float-vector 0 0 0)
+		       :root-angular-acceleration (float-vector 0 0 0)
+;;		       :root-spacial-acceleration (float-vector 0 0 0)
+		       :root-spacial-acceleration *root-accel*
 		       ))
 	   (if send-torque? (send *ri* :torque-vector tv))
 	   (if torque-limit?
-	       (and (send *ri* :torque-min-vector
-			  (map float-vector
-			       #'(lambda (v m)
-				   (- v torque-limit?))
-				   ;; (+ (if (> (* m v) 0)
-				   ;; 	  (* -1.0 torque-limit?)
-				   ;; 	(* +1.0 torque-limit?)) v))
-			       tv (send *ri* :mirror-bin)))
-		    (send *ri* :torque-max-vector
-			  (map float-vector
-			       #'(lambda (v m)
-				   (+ v torque-limit?))
-				   ;; (+ (if (> (* m v) 0)
-				   ;; 	  (* +1.0 torque-limit?)
-				   ;; 	(* -1.0 torque-limit?)) v))
-			       tv (send *ri* :mirror-bin)))))))
+	       (progn
+		 ;;(send (nth 21 (send *ri* :get-val 'joint-list))
+		 ;;      :put 'torque_combined 4.0)
+		 ;;(send (nth 22 (send *ri* :get-val 'joint-list))
+		 ;;      :put 'torque_combined 4.0)
+		 (send *ri* :torque-combined-vector tv)))
+	       ;; (and (send *ri* :torque-min-vector
+	       ;; 		  (map float-vector
+	       ;; 		       #'(lambda (v m)
+	       ;; 			   (- v torque-limit?))
+	       ;; 			   ;; (+ (if (> (* m v) 0)
+	       ;; 			   ;; 	  (* -1.0 torque-limit?)
+	       ;; 			   ;; 	(* +1.0 torque-limit?)) v))
+	       ;; 		       tv (send *ri* :mirror-bin)))
+	       ;; 	    (send *ri* :torque-max-vector
+	       ;; 		  (map float-vector
+	       ;; 		       #'(lambda (v m)
+	       ;; 			   (+ v torque-limit?))
+	       ;; 			   ;; (+ (if (> (* m v) 0)
+	       ;; 			   ;; 	  (* +1.0 torque-limit?)
+	       ;; 			   ;; 	(* -1.0 torque-limit?)) v))
+	       ;; 		       tv (send *ri* :mirror-bin))))
+	   ))
 	 ;; (map cons
 	 ;;      #'(lambda (v m j)
 	 ;; 	  (format t " ~Ax~A E [~A ~A] at ~A~%"
