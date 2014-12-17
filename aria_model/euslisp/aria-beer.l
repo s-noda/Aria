@@ -55,7 +55,81 @@
 (send *fove-obj* :set-color #F(0 0 1))
 (objects (list *robot* *beer-obj* *fove-obj* *tablet-obj*))
 
-(defvar *kanpai-flag* 0)
+(defvar *base-beer-pose*
+  (float-vector 0.0 -1.45573 0.027471 -61.1792 -0.972318 -0.653704 9.32218 -3.00486 -154.84 -15.8 2.4 -98.4 43.2 -36.0 43.2 6.68738 5.8092 1.85949 -0.543847 0.0 0.0 0.0))
+
+;; (defvar *kanpai-flag* 0)
+(defvar *mode-id*)
+(setq *event-functions*
+  (list
+   (list
+    (cons :event-triger
+	  '(lambda (&rest args)
+	     (let* ((thre 0.4)
+		    (beer-tilt (cadr (car (rpy-angle (send *beer-obj* :worldrot))))))
+	       (format t "[kanpai triger] ~A > ~A~%" beer-tilt thre)
+	       (> beer-tilt thre)
+	       )))
+    (cons :event-callback
+	  '(lambda (&rest args)
+	     (send *robot* :angle-vector (float-vector 0.0 -1.45573 0.027471 -61.1792 -0.972318 -0.653704 9.32218 -3.00486 -154.84 -15.8 10.251 -30.0 -7.89955 8.59526 80.0 6.68738 5.8092 1.85949 -0.543847 0.0 0.0 0.0))
+	     (model2real :sleep-time 4000)
+	     ;; (unix:sleep 4)
+	     ))
+    (cons :event-end
+	  '(lambda (&rest args)
+	     (reset-manip-pose)
+	     (model2real :sleep-time 4000)
+	     ;; (unix:sleep 4)
+	     t) ;; hook
+	  )
+    )
+   (list
+    (cons :event-triger '(lambda (&rest args) t))
+    (cons :event-callback
+	  '(lambda (&rest args)
+	     ;; (send *robot* :angle-vector
+	     ;; 	   (v+ (scale 0.5 *base-beer-pose*)
+	     ;; 	       (scale 0.5 (send *robot* :angle-vector))))
+	     (send *robot* :inverse-kinematics
+		   (list (send *fove-obj* :copy-worldcoords)
+			 (send *beer-obj* :copy-worldcoords))
+		   :move-target
+		   (list *fove-end-coords* *beer-end-coords*)
+		   :link-list
+		   (list
+		    (send *robot* :link-list (send *fove-end-coords* :parent) (send *robot* :head :root-link))
+		    (send *robot* :link-list (send *beer-end-coords* :parent) (send *robot* :rarm :root-link)))
+		   :collision-avoidance-link-pair
+		   (apply
+		    #'append
+		    (mapcar
+		     #'(lambda (hl)
+			 (mapcar
+			  #'(lambda (bl) (list hl bl))
+			  (cdr (send *robot* :torso :links))))
+		     (send *robot* :rarm :links)))
+		   :avoid-collision-distance 100
+		   :avoid-collision-null-gain 3.
+		   :avoid-collision-joint-gain 3.
+		   :rotation-axis (list t t)
+		   :translation-axis (list nil nil)
+		   :stop 5
+		   :revert-if-fail nil
+		   :debug-view nil)
+	     ;;(send *robot* :head :neck-p :joint-angle 0)
+	     ;;(send *robot* :head :neck-r :joint-angle 0)
+	     ;;(send *robot* :head :neck-y :joint-angle 0)
+	     (send *robot* :torso :waist-p :joint-angle 0)
+	     (send *robot* :torso :waist-r :joint-angle 0)
+	     (send *robot* :torso :waist-y :joint-angle 0)
+	     ;;(send-all (send *robot* :rarm :joint-list) :joint-angle 0)
+	     (send-all (send *robot* :larm :joint-list) :joint-angle 0)
+	     (model2real :sleep-time 1000)
+	     ;; (unix:sleep 1)
+	     ))
+    (cons :event-end '(lambda (&rest args) nil)))
+   ))
 
 (defun android-imu-callback
   (msg)
@@ -94,12 +168,12 @@
     (send *tablet-obj* :newcoords
 	  (send (send *beer-obj* :copy-worldcoords) :translate #F(300 0 0) :local))
     ;; (send *viewer* :draw-objects)
-    (cond
-     ((> (print (cadr (car (rpy-angle (send *beer-obj* :worldrot))))) 0.3)
-      (print 'kanpai) (setq *kanpai-flag* 1))
-     ((> *kanpai-flag* 0)
-      (setq *kanpai-flag* 2))
-     (t (setq *kanpai-flag* 0)))
+    ;; (cond
+    ;;  ((> (print (cadr (car (rpy-angle (send *beer-obj* :worldrot))))) 0.3)
+    ;;   (print 'kanpai) (setq *kanpai-flag* 1))
+    ;;  ((> *kanpai-flag* 0)
+    ;;   (setq *kanpai-flag* 2))
+    ;;  (t (setq *kanpai-flag* 0)))
     ))
 
 (defun android-imu-callback2
@@ -248,53 +322,23 @@
  (ros::spin-once)
  (ros::sleep)
  ;;
- (send *robot* :inverse-kinematics
-       (list (send *fove-obj* :copy-worldcoords)
- 	     (send *beer-obj* :copy-worldcoords))
-       :move-target
-       (list *fove-end-coords* *beer-end-coords*)
-       :link-list
-       (list
- 	(send *robot* :link-list (send *fove-end-coords* :parent) (send *robot* :head :root-link))
- 	(send *robot* :link-list (send *beer-end-coords* :parent) (send *robot* :rarm :root-link)))
-       :collision-avoidance-link-pair
-       (apply
- 	#'append
- 	(mapcar
- 	 #'(lambda (hl)
- 	     (mapcar
- 	      #'(lambda (bl) (list hl bl))
- 	      (cdr (send *robot* :torso :links))))
- 	 (send *robot* :rarm :links)))
-       :avoid-collision-distance 100
-       :avoid-collision-null-gain 3.
-       :avoid-collision-joint-gain 3.
-       :rotation-axis (list t t)
-       :translation-axis (list nil nil)
-       :stop 5
-       :revert-if-fail nil
-       :debug-view nil)
- ;;(send *robot* :head :neck-p :joint-angle 0)
- ;;(send *robot* :head :neck-r :joint-angle 0)
- ;;(send *robot* :head :neck-y :joint-angle 0)
- (send *robot* :torso :waist-p :joint-angle 0)
- (send *robot* :torso :waist-r :joint-angle 0)
- (send *robot* :torso :waist-y :joint-angle 0)
- ;;(send-all (send *robot* :rarm :joint-list) :joint-angle 0)
- (send-all (send *robot* :larm :joint-list) :joint-angle 0)
- ;;
- (cond
-  ((> *kanpai-flag* 1)
-   (reset-manip-pose) (setq *kanpai-flag* 0)
-   ;;(model2real :sleep-time 4000)
-   )
-  ((> *kanpai-flag* 0)
-   (send *robot* :angle-vector (float-vector 0.0 -1.45573 0.027471 -61.1792 -0.972318 -0.653704 9.32218 -3.00486 -154.84 -15.8 10.251 -30.0 -7.89955 8.59526 80.0 6.68738 5.8092 1.85949 -0.543847 0.0 0.0 0.0))
-   ;;(model2real :sleep-time 4000)
-   )
-  (t
-   ;; (model2real :sleep-time 1000)
-   ))
+ (let* ((id -1))
+   (dolist (f *event-functions*)
+     (incf id)
+     (cond
+      ((funcall (cdr (assoc :event-triger f)))
+       (cond
+	((and *mode-id*
+	      (not (eq *mode-id* id))
+	      (< *mode-id* (length *event-functions*))
+	      (funcall
+	       (cdr (assoc :event-end (nth *mode-id* *event-functions*)))))
+	 'hook)
+	(t
+	 (funcall (cdr (assoc :event-callback f)))))
+       (setq *mode-id* id)
+       (return-from nil nil)
+       ))))
  ;;
  (send *beer-obj* :newcoords
        (send *beer-end-coords* :copy-worldcoords))
