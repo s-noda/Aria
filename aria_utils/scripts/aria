@@ -29,6 +29,10 @@ aria() {
 	    rostopic pub --once "/currentor_socket/request/position_vector" std_msgs/Float32MultiArray '{data: '$3'}' &
 	    PROC=$!
 	    (sleep 1.0; kill $PROC)
+	elif [ $2 = "ct" ] ; then
+	    rostopic pub --once "/currentor_socket/request/ctv_vector" std_msgs/Float32MultiArray '{data: '$3'}' &
+	    PROC=$!
+	    (sleep 1.0; kill $PROC)
 	elif [ $2 = "setFeedback" ] ; then
 	    mode=0
 	    if [ $3 = "velocity" ] ; then
@@ -77,6 +81,13 @@ aria() {
 	    (sleep 1.0; kill $PROC)
 	elif [ $2 = "arm_free" ] ; then
 	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
+	    PROC=$!
+	    (sleep 1.0; kill $PROC)
+	elif [ $2 = "arm_exg" ] ; then
+	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
+	    PROC=$!
+	    (sleep 1.0; kill $PROC)
+	    rostopic pub --once "/currentor_socket/request/ctv_vector" std_msgs/Float32MultiArray '{data: ['0.0','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
 	    PROC=$!
 	    (sleep 1.0; kill $PROC)
 	elif [ $2 = "all_position" ] ; then
