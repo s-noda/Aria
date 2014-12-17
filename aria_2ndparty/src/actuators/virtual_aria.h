@@ -25,7 +25,7 @@ class VirtualAria {
     mode_publisher_ =
         nh_.advertise<std_msgs::Float32MultiArray>(
             "/currentor_socket/virtual_array/mode", 1000);
-    torque_publisher_ = 
+    torque_publisher_ =
         nh_.advertise<std_msgs::Float32MultiArray>(
             "/currentor_socket/virtual_array/torque", 1000);
     position_publisher_ =
@@ -72,6 +72,31 @@ class VirtualAria {
   ros::Publisher torque_publisher_;
   ros::Publisher position_publisher_;
   ros::Subscriber mode_subscriber_;
+};
+
+class VirtualForce {
+ public:
+  explicit VirtualForce(ros::NodeHandle &nh) {
+    angular_publisher_ = nh.advertise<std_msgs::Float32MultiArray>("/root_force/virtual_array/angular", 100);
+    spacial_publisher_ = nh.advertise<std_msgs::Float32MultiArray>("/root_force/virtual_array/spacial", 100);
+  }
+  ~VirtualForce() {};
+  inline void publish(ssb_common_vec::VecForce vec) {
+    std_msgs::Float32MultiArray angular, spacial;
+    angular.data.resize(3);
+    angular.data.at(0) = vec.ax;
+    angular.data.at(1) = vec.ay;
+    angular.data.at(2) = vec.az;
+    spacial.data.resize(3);
+    spacial.data.at(0) = vec.x;
+    spacial.data.at(1) = vec.y;
+    spacial.data.at(2) = vec.z;
+    angular_publisher_.publish(angular);
+    spacial_publisher_.publish(spacial);
+  };
+ private:
+  ros::Publisher angular_publisher_;
+  ros::Publisher spacial_publisher_;
 };
 
 }

@@ -97,6 +97,20 @@ struct VecBody {
   std::vector<float> joints;
 };
 
+struct VecForce {
+  VecForce();
+  VecForce(const float init_x, const float init_y, const float init_z,
+	   const float init_ax, const float init_ay, const float init_az);
+  VecForce(const VecForce &obj);
+  VecForce& operator=(const VecForce &obj);
+  VecForce& operator+=(const VecForce &obj);
+  VecForce& operator-=(const VecForce &obj);
+  VecForce& operator/=(const float kGain);
+  VecForce& operator*=(const float kGain);
+  float x, y, z;
+  float ax, ay, az;
+};
+
 struct VecTime {
   VecTime();
   VecTime(const float init_start_time, const float init_play_time);

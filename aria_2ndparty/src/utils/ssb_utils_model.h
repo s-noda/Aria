@@ -136,6 +136,19 @@ class VirtualAriaModel : public Model<ssb_common_vec::VecBody,
   ssb_common_vec::VecBody getHomeAsInput() { return ssb_common_vec::VecBody(30); };
 };
 
+class VirtualForceModel : public Model<ssb_common_vec::VecForce,
+                                       ssb_common_vec::VecForce,
+                                       aria::VirtualForce> {
+ public:
+  explicit VirtualForceModel(ros::NodeHandle &nh) : Model(nh) {
+    setParams(ssb_common_enum::DEBUG);
+  };
+  ~VirtualForceModel() {};
+  void setParams(ssb_common_enum::Config settings) {};
+  void Input2Output() { output_ = input_; };
+  ssb_common_vec::VecForce getHomeAsInput() { return ssb_common_vec::VecForce(); };
+};
+
 class VoiceModel : public Model<ssb_common_vec::VecVoice,
                                 ssb_common_vec::VecVoice,
                                 ssb_media_event::Voice> {
