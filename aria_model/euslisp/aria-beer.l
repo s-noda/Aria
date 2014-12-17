@@ -46,9 +46,14 @@
 (defvar *fove-zero-coords-calib-flag* t)
 (defvar *fove-obj* (make-cylinder 80 80))
 
+(defvar *tablet-zero-coords* (make-coords))
+(defvar *tablet-zero-coords-calib-flag* t)
+(defvar *tablet-obj* (make-cube 30 120 300))
+
 (send *beer-obj* :set-color #F(1 1 0))
 (send *fove-obj* :set-color #F(1 0 0))
-(objects (list *robot* *beer-obj* *fove-obj*))
+(send *fove-obj* :set-color #F(0 0 1))
+(objects (list *robot* *beer-obj* *fove-obj* *tablet-obj*))
 
 (defvar *kanpai-flag* 0)
 
@@ -66,11 +71,11 @@
      (*beer-zero-coords-calib-flag*
       (setq *beer-zero-coords-calib-flag* nil)
       (setq *beer-zero-coords*
-	    (make-coords
-	     :rpy
-	     (map cons #'*
-		  '(1 1 1)
-		  (car (rpy-angle (send (make-coords :rot (transpose m)) :worldrot))))))
+      	    (make-coords
+      	     :rpy
+      	     (map cons #'*
+      		  '(-1 -1 1)
+      		  (car (rpy-angle (send (make-coords :rot (transpose m)) :worldrot))))))
       ;;(make-coords :rot (transpose m)))
       ))
     (send *beer-obj* :newcoords
@@ -83,16 +88,57 @@
 		  (make-coords
 		   :rpy
 		   (map cons #'*
-			'(1 1 1)
+			'(-1 -1 1)
 			(car (rpy-angle (send (make-coords :rot (transpose m)) :worldrot))))))
 	    :worldrot)))
+    (send *tablet-obj* :newcoords
+	  (send (send *beer-obj* :copy-worldcoords) :translate #F(300 0 0) :local))
     ;; (send *viewer* :draw-objects)
     (cond
-     ((< (print (cadr (car (rpy-angle (send *beer-obj* :worldrot))))) -0.3)
+     ((> (print (cadr (car (rpy-angle (send *beer-obj* :worldrot))))) 0.3)
       (print 'kanpai) (setq *kanpai-flag* 1))
      ((> *kanpai-flag* 0)
       (setq *kanpai-flag* 2))
      (t (setq *kanpai-flag* 0)))
+    ))
+
+(defun android-imu-callback2
+  (msg)
+  (format t "[cup-ui-imu-callback]~%")
+  (let* ((qv (float-vector
+	      (send (send (send msg :pose) :orientation) :w)
+	      (send (send (send msg :pose) :orientation) :x)
+	      (send (send (send msg :pose) :orientation) :y)
+	      (send (send (send msg :pose) :orientation) :z)))
+	 (m (quaternion2matrix qv)))
+    ;; (setq m (send (make-coords :rpy (list 0 (norm (coerce (car (rpy-angle m)) float-vector)) 0)) :worldrot))
+    (cond
+     (*fove-zero-coords-calib-flag*
+      (setq *fove-zero-coords-calib-flag* nil)
+      (setq *fove-zero-coords*
+      	    (make-coords
+      	     :rpy
+      	     (map cons #'*
+      		  '(-1 -1 1)
+      		  (car (rpy-angle (send (make-coords :rot (transpose m)) :worldrot))))))
+      ;;(make-coords :rot (transpose m)))
+      ))
+    (send *fove-obj* :newcoords
+	  (make-coords
+	   :pos (copy-seq (send *fove-end-coords* :worldpos))
+	   :rot
+	   (send
+	    (send *fove-zero-coords*
+		  :transformation
+		  (make-coords
+		   :rpy
+		   (map cons #'*
+			'(-1 -1 1)
+			(car (rpy-angle (send (make-coords :rot (transpose m)) :worldrot))))))
+	    :worldrot)))
+    (send *tablet-obj* :newcoords
+	  (send (send *fove-obj* :copy-worldcoords) :translate #F(300 0 0) :local))
+    ;; (send *viewer* :draw-objects)
     ))
 
 (defun cup-ui-imu-callback
@@ -175,9 +221,9 @@
   (setq *beer-zero-coords-calib-flag* t)
   (setq *fove-zero-coords-calib-flag* t))
 
-;; (ros::subscribe "/android_pose/poseStamped"
-;;		geometry_msgs::PoseStamped
-;;		#'android-imu-callback)
+(ros::subscribe "/android_pose/poseStamped"
+		geometry_msgs::PoseStamped
+		#'android-imu-callback)
 (ros::subscribe "/fove/kduino/converted_imu"
 		sensor_msgs::imu
 		#'fove-imu-callback)
@@ -187,6 +233,10 @@
 (ros::subscribe "/aria_beer/request/calib"
 		std_msgs::empty
 		#'calib-callback)
+;; (ros::subscribe "/android_pose/poseStamped"
+;;		geometry_msgs::PoseStamped
+;;		#'android-pose-callback)
+
 
 (defun reset-manip-pose
   nil
