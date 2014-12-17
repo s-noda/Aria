@@ -118,28 +118,28 @@ def set_positions(data):
     pub_position.publish(msg)
     time.sleep(0.1)
 
-def set_pid_gain(joint, p=0.0, i=0.0, d=0.0):
-    msg = Float32MultiArray()
-    if not type(joint) is int:
-        msg.data = joint
-    else:
-        set_feedback(feedback['kp'])
-        time.sleep(0.1)
-        tmp = echo_joints('debug')
-        tmp.extend([0.0]*joint_size)
-        set_feedback(feedback['kd'])
-        time.sleep(0.1)
-        tmp.extend(echo_joints('debug'))
-        msg.data = tmp
-        msg.data[joint] = p
-        msg.data[joint+joint_size] = i
-        msg.data[joint+2*joint_size] = d
-    pub_pid.publish(msg)
-    time.sleep(0.1)
-    ret = echo_joints('debug')
-    set_feedback(feedback['kp'])
-    print echo_joints('debug') #kp
-    print ret #kd
+#def set_pid_gain(joint, p=0.0, i=0.0, d=0.0):
+#    msg = Float32MultiArray()
+#    if not type(joint) is int:
+#        msg.data = joint
+#    else:
+#        set_feedback(feedback['kp'])
+#        time.sleep(0.1)
+#        tmp = echo_joints('debug')
+#        tmp.extend([0.0]*joint_size)
+#        set_feedback(feedback['kd'])
+#        time.sleep(0.1)
+#        tmp.extend(echo_joints('debug'))
+#        msg.data = tmp
+#        msg.data[joint] *= p
+#        msg.data[joint+joint_size] *= i
+#        msg.data[joint+2*joint_size] *= d
+#    pub_pid.publish(msg)
+#    time.sleep(0.1)
+#    ret = echo_joints('debug')
+#    set_feedback(feedback['kp'])
+#    print echo_joints('debug') #kp
+#    print ret #kd
 
 
 def init_pid_gain(joint, p, i, d):
@@ -148,6 +148,17 @@ def init_pid_gain(joint, p, i, d):
     pub_json.publish(msg)
     time.sleep(0.1)
 
+def x_pid_gain(joint, p, i, d):
+    msg = String()
+    set_feedback(feedback['kp'])
+    time.sleep(0.05)
+    xp = echo_joint('debug', joint)*p
+    set_feedback(feedback['kd'])
+    time.sleep(0.05)
+    xd = echo_joint('debug', joint)*d
+    msg.data = '{\"method\":\"initPIDGain\",\"params\":\"[%d,%f,%f,%f]\",\"id\":\"1\"}' % (joint, xp, i, xd)
+    pub_json.publish(msg)
+    time.sleep(0.1)
 
 def set_interpolation(interpolate_type):
     msg = String()

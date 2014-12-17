@@ -5,7 +5,7 @@ while read line
 do
     sgn[j]="$line"
     j=$(($j + 1))
-done < $(rospack find aria_utils)/settings/sgn.dat
+done < $(rospack find aria_utils)/patch/python_patch_sgn.dat
 
 offset=()
 j=0
@@ -13,7 +13,7 @@ while read line
 do
     offset[j]="$line"
     j=$(($j + 1))
-done < $(rospack find aria_utils)/settings/offset.dat
+done < $(rospack find aria_utils)/patch/python_patch_offset.dat
 
 gen_dir="$(rospack find aria_utils)/scripts/generated"
 if [ ! -d "${gen_dir}" ]
@@ -29,7 +29,7 @@ fix_pyscript() {
     sed "s/${tab}/${readtab}/g" $1 > tmp
     sed "s/${tab4}/${readtab}/g" tmp > tmp1 && mv tmp1 tmp
     sed "s/${tab8}/${readtab}/g" tmp > tmp1 && mv tmp1 tmp
-    
+
     array=()
     i=0
     while read line
@@ -59,6 +59,17 @@ fix_pyscript() {
 	    done <<< "$line"
 	    replace="${replace:0:${#replace}-1}"
 	    replace="${replace}])"
+	    body="${body}${replace}\n"
+	elif [[ $e == *"time.sleep"* ]]
+	then
+	    idx=${#sgn[@]}
+	    idx=$(echo "$idx - 1" | bc | awk '{printf "%d", $0}')
+	    line="${e##*(}"
+	    replace=$(cut -d '(' -f 1 <<< "$e")
+	    replace="${replace}("
+	    i="${line:0:${#line}-1}"
+	    val=$(echo "$i * ${sgn[${idx}]}" | bc | awk '{printf "%f", $0}')
+	    replace="${replace}${val})"
 	    body="${body}${replace}\n"
 	else
 	    body="${body}${e}\n"
@@ -100,7 +111,7 @@ def="${def:0:${#def}-1}"
 def="${def}}\n"
 
 body="$header$packages$def"
-body="${body}\ndef callback(msg):\n\tmotions[msg.data]()\n\n"
+body="${body}\ndef callback(msg):\n\tmotions[msg.data]()\n\ttime.sleep(4.0)\n\tmotions['reset']()\n\n"
 
 main="if __name__ == '__main__':"
 main="${main}\n\trospy.init_node('motion_runner',anonymous=True)\n\trospy.Subscriber('/aria/commandline',String,callback)\n\trospy.spin()"

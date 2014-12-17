@@ -281,6 +281,54 @@ VecBody& VecBody::operator*=(float kGain) {
 
 //---------------------------------------------------------------
 
+VecForce::VecForce() {
+  x = 0; y = 0; z = 0;
+  ax = 0; ay = 0; az = 0;
+}
+
+VecForce::VecForce(const float init_x, const float init_y, const float init_z,
+		   const float init_ax, const float init_ay, const float init_az) {
+  x = init_x; y = init_y; z = init_z;
+  ax = init_ax; ay = init_ay; az = init_az;
+}
+
+VecForce::VecForce(const VecForce &obj) {
+  x = obj.x; y = obj.y; z = obj.z;
+  ax = obj.ax; ay = obj.ay; az = obj.az;
+}
+
+VecForce& VecForce::operator=(const VecForce &obj) {
+  x = obj.x; y = obj.y; z = obj.z;
+  ax = obj.ax; ay = obj.ay; az = obj.az;
+  return *this;
+}
+
+VecForce& VecForce::operator+=(const VecForce &obj) {
+  x += obj.x; y += obj.y; z += obj.z;
+  ax += obj.ax; ay += obj.ay; az += obj.az;
+  return *this;
+}
+
+VecForce& VecForce::operator-=(const VecForce &obj) {
+  x -= obj.x; y -= obj.y; z -= obj.z;
+  ax -= obj.ax; ay -= obj.ay; az -= obj.az;
+  return *this;
+}
+
+VecForce& VecForce::operator/=(const float kGain) {
+  x /= kGain; y /= kGain; z /= kGain;
+  ax /= kGain; ay /= kGain; az /= kGain;
+  return *this;
+}
+
+VecForce& VecForce::operator*=(const float kGain) {
+  x *= kGain; y *= kGain; z *= kGain;
+  ax *= kGain; ay *= kGain; az *= kGain;
+  return *this;
+}
+
+//---------------------------------------------------------------
+
 VecTime::VecTime() {
   start_time = 0;
   play_time = 0;

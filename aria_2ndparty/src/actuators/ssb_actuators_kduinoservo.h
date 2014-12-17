@@ -26,7 +26,7 @@ template<typename T> class KduinoServo {
 class QuadOEyeServo : public KduinoServo<ssb_common_vec::VecQuadOEye> {
  public:
   explicit QuadOEyeServo(ros::NodeHandle &nh) {
-    command_ = nh.advertise<kduino::KduinoServo>("/kduino/eyes_servos_control", 100);
+    command_ = nh.advertise<kduino::KduinoServo>("/ariaye/kduino/eyes_servos_control", 100);
   };
   ~QuadOEyeServo() {};
   inline void publish(ssb_common_vec::VecQuadOEye vec) {

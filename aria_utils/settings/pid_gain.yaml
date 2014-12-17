@@ -3,11 +3,11 @@ hip2:
     i: 0.0
     d: 2.9
 hip3:
-    p: 50.0
+    p: 200.0
     i: 0.0
     d: 50.0
 body:
-    p: 500.0
+    p: 4000.0
     i: 0.0
     d: 50.0
 arm_r_joint1:
@@ -15,13 +15,13 @@ arm_r_joint1:
     i: 0.0
     d: 0.5
 arm_r_joint2:
-    p: 50.0
+    p: 200.0
     i: 0.0
     d: 5.0
 arm_r_joint3:
-    p: 50.0
+    p: 400.0
     i: 0.0
-    d: 5.0
+    d: 10.0
 arm_r_joint4:
     p: 210.0
     i: 0.0
@@ -47,7 +47,7 @@ arm_l_joint2:
     i: 0.0
     d: 7.0
 arm_l_joint3:
-    p: 50.0
+    p: 800.0
     i: 0.0
     d: 50.0
 arm_l_joint4:

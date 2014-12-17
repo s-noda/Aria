@@ -29,6 +29,10 @@ aria() {
 	    rostopic pub --once "/currentor_socket/request/position_vector" std_msgs/Float32MultiArray '{data: '$3'}' &
 	    PROC=$!
 	    (sleep 1.0; kill $PROC)
+	elif [ $2 = "ct" ] ; then
+	    rostopic pub --once "/currentor_socket/request/ctv_vector" std_msgs/Float32MultiArray '{data: '$3'}' &
+	    PROC=$!
+	    (sleep 1.0; kill $PROC)
 	elif [ $2 = "setFeedback" ] ; then
 	    mode=0
 	    if [ $3 = "velocity" ] ; then
@@ -45,6 +49,10 @@ aria() {
 		mode=5
 	    elif [ $3 = "Cp" ] ; then
 		mode=6
+	    elif [ $3 = "min_torque" ] ; then
+		mode=7
+	    elif [ $3 = "max_torque" ] ; then
+		mode=8
 	    else
 		mode=0
 	    fi
@@ -57,10 +65,33 @@ aria() {
 	    (sleep 1.0; kill $PROC)
 	fi
     elif [ $1 = "list" ] ; then
-	echo $'aria once <torque, position, mode, velocity, temperature, debug>\naria echo <torque, position, mode, velocity, temperature, debug>\naria pub sendZero\naria pub setTorque [<joint>,<torque>]\naria pub setPosition [<joint>,<angle>]\naria pub setControlMode [<joint>,<mode>]\naria pub setTime [<time>]\naria pub setFeedback <torque, position, Kp, Kd, Ct, Cp>\naria pub gripper [<right>,<left>,<time>]\naria pub eye [<horizontal>,<vertical>,<time>]\naria pub torque [0.0,<no.1>,...,<no.29>]\naria pub position [0.0,<no.1>,...,<no.29>]\naria servo_on\naria apply_gain\naria initiate\naria servo_off\naria mode <standard, pose>'
+	echo $'aria once <torque, position, mode, velocity, temperature, debug>\naria echo <torque, position, mode, velocity, temperature, debug>\naria pub sendZero\naria pub setTorque [<joint>,<torque>]\naria pub setPosition [<joint>,<angle>]\naria pub setControlMode [<joint>,<mode>]\naria pub setTime [<time>]\naria pub setFeedback <torque, position, Kp, Kd, Ct, Cp>\naria pub gripper [<right>,<left>,<time>]\naria pub eye [<horizontal>,<vertical>,<time>]\naria pub torque [0.0,<no.1>,...,<no.29>]\naria pub position [0.0,<no.1>,...,<no.29>]\naria servo_on\naria apply_gain\naria initiate\naria servo_off\naria positive?\naria mode <standard, arm_free, all_position, pose>'
+    elif [ $1 = "positive?" ] ; then
+	if [ -z "$2" ] ; then
+	    less -X -F $(rospack find aria_utils)/settings/list_positive.dat
+	else
+	    syntax=":${2}$\| ${2}$"
+	    joint_name=$(grep "$syntax" $(rospack find aria_utils)/settings/id_map.yaml | cut -d ":" -f1)
+	    grep "$joint_name" $(rospack find aria_utils)/settings/list_positive.dat | cut -d ":" -f2
+	fi
     elif [ $1 = "mode" ] ; then
 	if [ $2 = "standard" ] ; then
 	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','3.0','3.0','3.0','2.0','3.0','2.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
+	    PROC=$!
+	    (sleep 1.0; kill $PROC)
+	elif [ $2 = "arm_free" ] ; then
+	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
+	    PROC=$!
+	    (sleep 1.0; kill $PROC)
+	elif [ $2 = "arm_exg" ] ; then
+	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','3.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
+	    PROC=$!
+	    (sleep 1.0; kill $PROC)
+	    rostopic pub --once "/currentor_socket/request/ctv_vector" std_msgs/Float32MultiArray '{data: ['0.0','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','$3','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
+	    PROC=$!
+	    (sleep 1.0; kill $PROC)
+	elif [ $2 = "all_position" ] ; then
+	    rostopic pub --once "/currentor_socket/request/mode_vector" std_msgs/Float32MultiArray '{data: ['0.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','2.0','1.0','1.0','0.0','0.0','0.0','0.0','0.0','0.0','0.0']}' &
 	    PROC=$!
 	    (sleep 1.0; kill $PROC)
 	elif [ $2 = "pose" ] ; then
